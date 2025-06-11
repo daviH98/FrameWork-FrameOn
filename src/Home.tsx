@@ -1,5 +1,5 @@
 // src/Home.jsx
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Home() {
