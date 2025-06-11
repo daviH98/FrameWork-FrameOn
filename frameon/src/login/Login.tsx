@@ -3,6 +3,7 @@ import React from "react";
 import {useState} from "react";
 import userService from "../service/userService";
 import {useNavigate} from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const Login: React.FC<{}> = ({ }) => {
 
@@ -24,8 +25,13 @@ const Login: React.FC<{}> = ({ }) => {
     }
 
     return (
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-40 lg:px-8 bg-gray-800">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-40 lg:px-8 bg-gray-950">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <img
+          alt="Your Company"
+          src={logo}
+          className="mx-auto h-10 w-10"
+        />
         <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">
           Fazer login
         </h2>
@@ -44,7 +50,7 @@ const Login: React.FC<{}> = ({ }) => {
                 type="email"
                 required
                 autoComplete="email"
-                className="block w-full rounded-md bg-gray-700 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
@@ -56,7 +62,7 @@ const Login: React.FC<{}> = ({ }) => {
                 Senha
               </label>
               <div className="text-sm">
-                <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300">
+                <a href="#" className="font-semibold text-yellow-700 hover:text-yellow-500">
                   Esqueceu a senha?
                 </a>
               </div>
@@ -68,7 +74,7 @@ const Login: React.FC<{}> = ({ }) => {
                 type="password"
                 required
                 autoComplete="current-password"
-                className="block w-full rounded-md bg-gray-700 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                 onChange={(e) => setSenha(e.target.value)}
               />
             </div>
@@ -77,7 +83,7 @@ const Login: React.FC<{}> = ({ }) => {
           <div>
             <button
               type="submit"
-              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              className="flex w-full justify-center rounded-md bg-yellow-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-yellow-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
               Entrar
             </button>
@@ -86,7 +92,7 @@ const Login: React.FC<{}> = ({ }) => {
 
         <p className="mt-10 text-center text-sm/6 text-white">
           Não tem uma conta?{' '}
-          <a href="/usuario" className="font-semibold text-indigo-400 hover:text-indigo-300">
+          <a href="/usuario" className="font-semibold text-yellow-700 hover:text-yellow-500">
             Registre-se aqui
           </a>
         </p>

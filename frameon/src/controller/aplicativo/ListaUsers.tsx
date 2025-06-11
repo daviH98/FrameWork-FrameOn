@@ -24,7 +24,7 @@ const ListaUsers: React.FC<{}> = ({}) => {
     return (
        <div>
         <button onClick={buscarUsuarios} type="button">Pesquisar</button>
-            <table className="table table-dark table-striped">
+            <table className="table-auto">
                 <thead>
                     <tr>
                     <th scope="col">#</th>
