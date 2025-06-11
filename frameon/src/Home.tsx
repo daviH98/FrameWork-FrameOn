@@ -2,53 +2,126 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Filme } from './model/Filme.model';
+import logo from "./assets/logo.png";
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
+
+const navigation = [
+  { name: 'Filmes', href: '#', current: false },
+  { name: 'Favoritos', href: '#', current: false },
+  { name: 'Sobre', href: '#', current: false },
+  { name: 'Cadastro', href: '/usuario', current: false },
+]
+
+function classNames(...classes: any[]) {
+  return classes.filter(Boolean).join(' ')
+}
 
 function Home() {
-  const [filmes, setFilmes] = useState([]);
-  const [dropdownAberto, setDropdownAberto] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const armazenados = JSON.parse(localStorage.getItem('filmes')  || '{}');
-    setFilmes(armazenados);
-  }, []);
 
   return (
     <>
       {/* Navbar */}
-      <div className="absolute top-0 left-0 w-full flex justify-between items-center p-4">
-        <img src="/logo.PNG" alt="Logo" className="h-16" />
-        <div className="flex gap-6 text-white">
-          <span onClick={() => navigate('/')} className="hover:underline cursor-pointer">Filmes</span>
-
-          <div
-            className="relative"
-            onMouseEnter={() => setDropdownAberto(true)}
-            onMouseLeave={() => setTimeout(() => setDropdownAberto(false), 300)}
-          >
-            <span className="hover:underline cursor-pointer">Categorias</span>
-            {dropdownAberto && (
-              <ul className="absolute bg-black text-white p-2 rounded shadow top-6 z-10">
-                <li className="hover:bg-gray-700 px-2 py-1 cursor-pointer">Terror</li>
-                <li className="hover:bg-gray-700 px-2 py-1 cursor-pointer">Comédia</li>
-                <li className="hover:bg-gray-700 px-2 py-1 cursor-pointer">Suspense</li>
-                <li className="hover:bg-gray-700 px-2 py-1 cursor-pointer">Ação</li>
-                <li className="hover:bg-gray-700 px-2 py-1 cursor-pointer">Romance</li>
-              </ul>
-            )}
+      <Disclosure as="nav" className="bg-black">
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+        <div className="relative flex h-16 items-center justify-between">
+          <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+            {/* Mobile menu button*/}
+            <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset">
+              <span className="absolute -inset-0.5" />
+              <span className="sr-only">Open main menu</span>
+              <Bars3Icon aria-hidden="true" className="block size-6 group-data-open:hidden" />
+              <XMarkIcon aria-hidden="true" className="hidden size-6 group-data-open:block" />
+            </DisclosureButton>
           </div>
+          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+            <div className="flex shrink-0 items-center">
+              <img
+                alt="Your Company"
+                src={logo}
+                className="mx-auto h-10 w-10"
+              />
+            </div>
+            <div className="hidden sm:ml-6 sm:block">
+              <div className="flex space-x-4">
+                {navigation.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    aria-current={item.current ? 'page' : undefined}
+                    className={classNames(
+                      item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-white hover:text-black',
+                      'rounded-md px-3 py-2 text-sm font-medium',
+                    )}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
 
-          <span className="hover:underline cursor-pointer">Favoritos</span>
-          <span className="hover:underline cursor-pointer">Sobre</span>
-          <span onClick={() => navigate('/cadastro')} className="hover:underline cursor-pointer">Cadastrar</span>
+            {/* Profile dropdown */}
+            <Menu as="div" className="relative ml-3">
+              <div>
+                <MenuButton className="relative flex rounded-full bg-gray-800 text-sm">
+                  <span className="absolute -inset-1.5" />
+                  <span className="sr-only">Open user menu</span>
+                  <img
+                    alt=""
+                    src={"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                    className="size-8 rounded-full"
+                  />
+                </MenuButton>
+              </div>
+              <MenuItems
+                transition
+                className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-black py-1 shadow-lg ring-1 ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+              >
+                <MenuItem>
+                  <a
+                    href="/usuario"
+                    className="block px-4 py-2 text-sm text-white hover:bg-white hover:text-black data-focus:bg-gray-100 data-focus:outline-hidden"
+                  >
+                    Seu perfil
+                  </a>
+                </MenuItem>
+                <MenuItem>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-white hover:bg-white hover:text-black data-focus:bg-gray-100 data-focus:outline-hidden"
+                  >
+                    Sair
+                  </a>
+                </MenuItem>
+              </MenuItems>
+            </Menu>
+          </div>
         </div>
-        <button
-          onClick={() => navigate('/login')}
-          className="text-white hover:underline"
-        >
-          Entrar
-        </button>
       </div>
+
+      <DisclosurePanel className="sm:hidden">
+        <div className="space-y-1 px-2 pt-2 pb-3">
+          {navigation.map((item) => (
+            <DisclosureButton
+              key={item.name}
+              as="a"
+              href={item.href}
+              aria-current={item.current ? 'page' : undefined}
+              className={classNames(
+                item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                'block rounded-md px-3 py-2 text-base font-medium',
+              )}
+            >
+              {item.name}
+            </DisclosureButton>
+          ))}
+        </div>
+      </DisclosurePanel>
+    </Disclosure>
 
       {/* Lista de Filmes */}
       <div
@@ -60,37 +133,6 @@ function Home() {
           backgroundRepeat: 'no-repeat'
         }}
       >
-        <div className="flex justify-center items-start pt-20">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-6 text-yellow-500">
-              Lista de Filmes Cadastrados
-            </h1>
-
-            {filmes.length === 0 ? (
-              <p className="text-center text-gray-400">Nenhum filme cadastrado ainda.</p>
-            ) : (
-              <ul className="space-y-4">
-                {filmes.map((filme: Filme, index) => (
-                  <li
-                    key={index}
-                    className="bg-white bg-opacity-10 rounded-lg p-4 text-white shadow-md"
-                  >
-                    <p><strong>Nome:</strong> {filme.nome}</p>
-                    <p><strong>Ano:</strong> {filme.ano}</p>
-                    <p><strong>Gênero:</strong> {filme.genero}</p>
-                    {filme.capa && (
-                      <img
-                        src={filme.capa}
-                        alt={`Capa de ${filme.nome}`}
-                        className="mt-2 w-40 rounded"
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
       </div>
     </>
   );

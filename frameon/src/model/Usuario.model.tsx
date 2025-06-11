@@ -3,5 +3,8 @@ export interface UsuarioModel {
     nome: string;
     email: string;
     senha: string,
-    dataNascimento?: any;
+    dOB: {
+    startDate: string | null;
+    endDate: string | null;
+  };
 }

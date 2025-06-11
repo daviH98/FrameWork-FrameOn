@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const app = express();
 const PORT = 8080;
@@ -9,16 +11,22 @@ const PORT = 8080;
 app.use(express.json());
 app.use(cors());
 
+const uploadFolder = path.join(__dirname, 'imagens');
+if (!fs.existsSync(uploadFolder)) {
+  fs.mkdirSync(uploadFolder);
+}
+
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'imagens')
+      cb(null, uploadFolder)
     },
     filename: function (req, file, cb) {
-      cb(null, file.fieldname + '-' + Date.now())
+      const ext = path.extname(file.originalname);
+      cb(null, file.fieldname + '-' + Date.now()+ ext)
     }
   });
   
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
 // require('dotenv').config();
 
@@ -44,9 +52,9 @@ const verifyToken = (token) => {
     return jwt.verify(token, 'meusegredoabc');
 };
 
-app.get('/api/login', function (req,res) {
+app.post('/api/login', function (req,res) {
     let usuario = req.body;
-    let sql = `SELECT u.id, u.email FROM usuario u WHERE u.email = ${usuario.email}`;
+    let sql = `SELECT u.id, u.email, u.senha FROM usuario u WHERE u.email = ${usuario.email}, u.senha = ${usuario.senha}`;
 
     conn.query(sql, function (err, result) {
         if(err) throw err;
@@ -79,9 +87,15 @@ app.post('/api/usuario', function (req,res) {
     var usuario = req.body;
     var sql = '';
     if(usuario.id) {
-        sql = `UPDATE usuario SET email = ${usuario.email}, senha = ${usuario.senha}, WHERE id = ${usuario.id}`;
+        sql = `UPDATE usuario SET
+        nome = ${usuario.nome}
+        email = ${usuario.email}, 
+        senha = ${usuario.senha},
+        dOB = ${usuario.dOB},
+        img = ${usuario.img} 
+        WHERE id = ${usuario.id}`;
     } else {
-        sql = `INSERT INTO usuario (email,senha) VALUES ('${usuario.email}', '${usuario.senha}')`;
+        sql = `INSERT INTO usuario (nome,email,senha, dOB, img) VALUES ('${usuario.nome}','${usuario.email}', '${usuario.senha}', '${usuario.dOB}', '${usuario.img}')`;
     }
 
     conn.query(sql, function (err, result) {
@@ -120,11 +134,15 @@ app.post('/api/upload', upload.single('file'), function (req, res) {
 });
 
 app.get('/api/image',function(req, res){
-    //var img = "\\imagens\\"
+    const img = path.join(__dirname, 'imagens', 'vida-de-gato.jpg');
+
+    fs.access(img, fs.constants.F_OK, (err) => {
+    if(err) {
+      return res.status(404).send('Arquivo não encontrado');
+    }
 
     res.setHeader('Content-Disposition', 'attachment; filename=vida-de-gato.jpg');
     res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Content-Length', 13269);
 
     const fileStream = fs.createReadStream(img);
     fileStream.pipe(res);
@@ -135,6 +153,7 @@ app.get('/api/image',function(req, res){
             res.status(500).json({ error: "Erro ao enviar o arquivo."})
         }
     });
+  });
 });
 
 app.listen(PORT, function (err) {

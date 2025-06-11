@@ -11,71 +11,54 @@ import logo from "../../assets/logo.png";
 
 const Usuario: React.FC<{}> = ({}) => {
 
-    const { control, register, handleSubmit, formState: { errors }, watch } = useForm();
+    const { control, register, handleSubmit, formState: { errors }, watch } = useForm({
+      defaultValues: {
+        nome: '',
+        email: '',
+        password: '',
+        passwordConfirm: '',
+        dOB: {
+          startDate: null,
+          endDate: null,
+        },
+      }
+    });
 
-    const[nome, setNome] = useState('');
-    const[email, setEmail] = useState('');
-    const[senha, setSenha] = useState('');
-    const[senhaConfirm, setSenhaConfirm] = useState('');
-    const[dataNasc, setDtNasc] = useState<DateValueType>({ 
-      startDate: null, 
-      endDate: null
-  });
-    const[file, setFile] = useState();
+    const[file, setFile] = useState('');
 
     const[usuario, setUsuario] = useState<UsuarioModel>();
 
     const {id} = useParams();
 
-    useEffect(() => {
-      if (id) {
-        usuarioService.buscarPorId(id).then(usuario => {
-            console.log(usuario.id);
-            setNome(usuario.nome);
-            setEmail(usuario.email);
-            setSenha(usuario.senha);
-            setDtNasc(usuario.dataNasc);
-        });
-        } else {
-          console.log('id não encontrado');
-        }
-    },[id]);
+    const salvar = (data: any) => {
+      console.log('salvar');
+      console.log(data);
 
-    const salvar = () => {
-        console.log('salvar');
-        console.log(nome);
-        console.log(email);
-        console.log(dataNasc);
-        setUsuario({
-          id: id,
-          nome: nome,
-          email: email,
-          senha: senha,
-          dataNascimento: dataNasc?.startDate
-        });
+      const novoUsuario: UsuarioModel = {
+        id: id,
+        nome: data.nome,
+        email: data.email,
+        senha: data.password,
+        dOB: data.dOB?.startDate.toISOString().slice(0, 10)
+      };
 
-        usuarioService.salvar({
-          id: id,
-          nome: nome,
-          email: email,
-          senha: senha,
-          dataNascimento: dataNasc
-      }).then(result => {
+      setUsuario(novoUsuario);
+
+      usuarioService.salvar(novoUsuario)
+        .then(result => {
           console.log("Salvou com sucesso!");
           console.log(result);
-      }, error => {
-          console.log(error);           
-      });
-    }
-
-    useEffect(() => {
-      console.log(errors);
-  }, [errors]);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    };
 
     const handleUpload = (event: any) => {
       console.log('capturar arquivo');
       console.log(event.target.files[0]);
       let file = event.target.files[0];
+      setFile(URL.createObjectURL(event.target.files[0]));
 
       if (!file) {
           console.log('Por favor, selecione um arquivo');
@@ -121,9 +104,7 @@ const Usuario: React.FC<{}> = ({}) => {
                 name="nome"
                 type="text"
                 required
-                value={nome}
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                onChange={(e) => setNome(e.target.value)}
               />
             </div>
             <label className="error-message">
@@ -136,22 +117,27 @@ const Usuario: React.FC<{}> = ({}) => {
               Data de nascimento
             </label>
             <div>
-            <Datepicker
-                  {...register("dataNasc", { required: 'O campo precisa ser preenchido.' })}
-                  inputId="dataNasc"
-                  inputName="dataNasc"
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({ field: { onChange, value } }) => (
+                <Datepicker
+                  value={value}
+                  onChange={onChange}
                   displayFormat="DD/MM/YYYY"
                   primaryColor={"yellow"}
                   useRange={false}
-                  asSingle={true} 
-                  required={true}
-                  value={dataNasc} 
-                  onChange={(dataNasc) => setDtNasc(dataNasc)}
-              /> 
+                  asSingle={true}
+                />
+              )}
+              name="dOB"
+            />
             </div>
           </div>
 
-          <div className="col-span-full">
+          <div className="col-span-full space-y-2">
               <label htmlFor="cover-photo" className="block text-sm/6 font-medium text-white">
                 Foto de perfil
               </label>
@@ -171,6 +157,12 @@ const Usuario: React.FC<{}> = ({}) => {
                   <p className="text-xs/5 text-gray-200">PNG ou JPG até 1MB</p>
                 </div>
               </div>
+              <div className="space-y-2">
+                <label htmlFor="cover-photo" className="block text-sm/6 font-medium text-white">
+                Prévia:
+              </label>
+              <img className="size-20" src={file} /></div>
+              
             </div>
 
           <div>
@@ -189,10 +181,8 @@ const Usuario: React.FC<{}> = ({}) => {
                 name="email"
                 type="email"
                 required
-                value={email}
                 autoComplete="email"
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -213,10 +203,8 @@ const Usuario: React.FC<{}> = ({}) => {
                 name="password"
                 type="password"
                 required
-                value={senha}
                 autoComplete="current-password"
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                onChange={(e) => setSenha(e.target.value)}
               />
             </div>
           </div>
@@ -239,9 +227,7 @@ const Usuario: React.FC<{}> = ({}) => {
                 name="passwordConfirm"
                 type="password"
                 required
-                value={senhaConfirm}
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                onChange={(e) => setSenhaConfirm(e.target.value)}
               />
             </div>
           </div>

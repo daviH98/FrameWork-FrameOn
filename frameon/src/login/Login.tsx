@@ -20,7 +20,7 @@ const Login: React.FC<{}> = ({ }) => {
 
             if (result.token) {
                 localStorage.setItem('token', result.token);
-                navigate('/lista-usuario');}
+                navigate('/');}
         });
     }
 
@@ -37,8 +37,7 @@ const Login: React.FC<{}> = ({ }) => {
         </h2>
       </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form action="#" method="POST" className="space-y-6">
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm/6 font-medium text-white">
               Endereço de email
@@ -84,11 +83,11 @@ const Login: React.FC<{}> = ({ }) => {
             <button
               type="submit"
               className="flex w-full justify-center rounded-md bg-yellow-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-yellow-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              onClick={login}
             >
               Entrar
             </button>
           </div>
-        </form>
 
         <p className="mt-10 text-center text-sm/6 text-white">
           Não tem uma conta?{' '}

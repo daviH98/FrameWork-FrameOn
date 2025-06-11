@@ -44,7 +44,7 @@ const ListaUsers: React.FC<{}> = ({}) => {
                                     <td>{usuario.nome}</td>
                                     <td>{usuario.email}</td>
                                     <td>{usuario.senha}</td>
-                                    <td>{usuario.dataNascimento}</td>
+                                    <td>{usuario.dOB?.startDate ?? null}</td>
                                     <td><button type="button" onClick={() => { carregar(usuario.id)}}>Carregar</button></td>
                                 </tr>
                             )
