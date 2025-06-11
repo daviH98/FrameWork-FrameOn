@@ -1,7 +1,11 @@
+// src/FilmesPage.jsx
 import React, { useState } from "react";
+import { FaPlay, FaRegStar, FaStar } from "react-icons/fa";
 
 function FilmesPage() {
   const [dropdownAberto, setDropdownAberto] = useState(false);
+  const [favoritos, setFavoritos] = useState([]);
+  const [mensagem, setMensagem] = useState("");
 
   const filmesPorCategoria = {
     Terror: [
@@ -9,12 +13,12 @@ function FilmesPage() {
       { nome: "Hereditário", capa: "/hereditario.png" }
     ],
     Comédia: [
-      { nome: "Gente Grande", capa: "/GenteGrande.jpg" },
+      { nome: "Gente Grande", capa: "/gente-grande.jpg" },
       { nome: "Norbit", capa: "/norbit.jpg" }
     ],
     Suspense: [
       { nome: "Parasita", capa: "/parasita.jpg" },
-      { nome: "Corra", capa: "/corra.png" }
+      { nome: "Corra", capa: "/corra.jpg" }
     ],
     Ação: [
       { nome: "Missão Impossível", capa: "/missao-impossivel.jpg" },
@@ -27,6 +31,18 @@ function FilmesPage() {
   };
 
   const todosFilmes = Object.values(filmesPorCategoria).flat();
+
+  const alternarFavorito = (filme) => {
+    const estaFavoritado = favoritos.includes(filme.nome);
+    if (estaFavoritado) {
+      setFavoritos(favoritos.filter((nome) => nome !== filme.nome));
+      setMensagem("Removido dos favoritos");
+    } else {
+      setFavoritos([...favoritos, filme.nome]);
+      setMensagem("Adicionado aos favoritos");
+    }
+    setTimeout(() => setMensagem(""), 2000);
+  };
 
   return (
     <div
@@ -73,16 +89,30 @@ function FilmesPage() {
       {/* Lista de Filmes */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-4 pt-12">
         {todosFilmes.map((filme, index) => (
-          <div key={index} className="text-center">
+          <div key={index} className="text-center relative group">
             <img
               src={filme.capa}
               alt={`Capa de ${filme.nome}`}
               className="w-full h-60 object-cover rounded shadow-md"
             />
+            <FaPlay className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-white text-xl" />
+            <button
+              className="absolute bottom-2 right-2 text-white text-lg hover:scale-110 transition"
+              onClick={() => alternarFavorito(filme)}
+            >
+              {favoritos.includes(filme.nome) ? <FaStar className="text-yellow-400" /> : <FaRegStar />}
+            </button>
             <p className="mt-1 text-sm">{filme.nome}</p>
           </div>
         ))}
       </div>
+
+      {/* Mensagem Temporária */}
+      {mensagem && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded shadow-md z-50">
+          {mensagem}
+        </div>
+      )}
     </div>
   );
 }
