@@ -1,6 +1,10 @@
 export interface Filme {
+    id: any,
     nome: string;
-    ano?: number;
+    ano: {
+      startDate: string | null;
+      endDate: string | null;
+    };
     genero?: string;
     capa: string | null;
   }

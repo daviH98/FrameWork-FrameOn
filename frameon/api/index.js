@@ -16,13 +16,14 @@ if (!fs.existsSync(uploadFolder)) {
   fs.mkdirSync(uploadFolder);
 }
 
+app.use('/imagens', express.static(path.join(__dirname, 'imagens')));
+
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, uploadFolder)
     },
     filename: function (req, file, cb) {
-      const ext = path.extname(file.originalname);
-      cb(null, file.fieldname + '-' + Date.now()+ ext)
+      cb(null, file.originalname);
     }
   });
   
@@ -51,6 +52,8 @@ const generateToken = (id, email) => {
 const verifyToken = (token) => {
     return jwt.verify(token, 'meusegredoabc');
 };
+
+// USUÁRIOS ---------------------------------------------------------------------------------
 
 app.post('/api/login', function (req,res) {
     let usuario = req.body;
@@ -95,7 +98,7 @@ app.post('/api/usuario', function (req,res) {
         img = ${usuario.img} 
         WHERE id = ${usuario.id}`;
     } else {
-        sql = `INSERT INTO usuario (nome,email,senha, dOB, img) VALUES ('${usuario.nome}','${usuario.email}', '${usuario.senha}', '${usuario.dOB}', '${usuario.img}')`;
+        sql = `INSERT INTO usuario (nome, email, senha, dOB, img) VALUES ('${usuario.nome}','${usuario.email}', '${usuario.senha}', '${usuario.dOB}', '${usuario.img}')`;
     }
 
     conn.query(sql, function (err, result) {
@@ -107,12 +110,18 @@ app.post('/api/usuario', function (req,res) {
 
 
 //endpoint para resgatar um usuário
-app.get('/api/usuario', authenticate, function (req,res) {
-    let sql = "SELECT u.id, u.nome FROM usuario u";
-
+app.get('/api/usuario', function (req,res) {
+    let sql = "SELECT u.id, u.nome, u. email, u.senha, u.dOB, u.img FROM usuario u";
     conn.query(sql, function (err, result) {
         if (err) res.status(500).json(err);
-        res.status(200).json(result);
+        const usersDOBFormat = result.map(usuario => {
+            if (usuario.dOB) {
+                // Formata a data no formato YYYY-MM-DD se necessário
+                usuario.dOB = new Date(usuario.dOB).toISOString().slice(0, 10);
+            }
+            return usuario;
+        });
+        res.status(200).json(usersDOBFormat);
     });
 });
 
@@ -120,7 +129,60 @@ app.get('/api/usuario', authenticate, function (req,res) {
 app.get('/api/usuario/:id', (req, res) => {
     const { id } = req.params;
 
-    let sql = `SELECT u.id, u.nome, u.email, u.senha FROM usuario u WHERE u.id = ${id}`;
+    let sql = `SELECT u.id, u.nome, u.email, u.senha, u.img, u.dOB FROM usuario u WHERE u.id = ${id}`;
+    conn.query(sql, function (err, result) {
+        if (err) throw err;
+        console.log(result)
+        res.status(200).json(result[0]);
+    });
+});
+
+// ---------------------------------------------------------------------------------
+
+// FILMES ---------------------------------------------------------------------------------
+
+//endpoint para cadastrar um filme
+app.post('/api/filme', function (req,res) {
+    var filme = req.body;
+    var sql = '';
+    if(filme.id) {
+        sql = `UPDATE filme SET
+        nome = ${filme.nome}
+        ano = ${filme.ano}, 
+        genero = ${filme.genero},
+        capa = ${filme.capa} 
+        WHERE id = ${filme.id}`;
+    } else {
+        sql = `INSERT INTO filme (nome,ano,genero,capa) VALUES ('${filme.nome}','${filme.ano}', '${filme.genero}', '${filme.capa}')`;
+    }
+
+    conn.query(sql, function (err, result) {
+        if (err) throw err;
+        res.status(200).json(result);
+    })
+});
+
+//endpoint para resgatar um filme
+app.get('/api/filme', function (req,res) {
+    let sql = "SELECT f.id, f.nome, f.ano, f.genero, f.capa FROM filme f";
+    conn.query(sql, function (err, result) {
+        if (err) res.status(500).json(err);
+        const filmesComAnoFormatado = result.map(filme => {
+            if (filme.ano) {
+                // Formata a data no formato YYYY-MM-DD se necessário
+                filme.ano = new Date(filme.ano).toISOString().slice(0, 10);
+            }
+            return filme;
+        });
+        res.status(200).json(filmesComAnoFormatado);
+    });
+});
+
+//endpoint para capturar um filme por id
+app.get('/api/filme/:id', (req, res) => {
+    const { id } = req.params;
+
+    let sql = `SELECT f.id, f.nome, f.genero, f.ano, f.capa FROM filme f WHERE f.id = ${id}`;
     conn.query(sql, function (err, result) {
         if (err) throw err;
         console.log(result)
@@ -129,8 +191,9 @@ app.get('/api/usuario/:id', (req, res) => {
 });
 
 app.post('/api/upload', upload.single('file'), function (req, res) {
-    console.log(req.file);
-    res.send('foi')
+    if (!req.file) return res.status(400).send('Nenhum arquivo enviado');
+  
+    res.status(200).json({ filename: req.file.filename });
 });
 
 app.get('/api/image',function(req, res){

@@ -3,58 +3,83 @@ import React, { useEffect, useState } from "react";
 import { UsuarioModel } from "../../model/Usuario.model";
 import userService from "../../service/userService";
 import { useNavigate } from "react-router-dom";
+import Usuario from "./Cadastro";
 
 
 const ListaUsers: React.FC<{}> = ({}) => {
 
-    const[usuarios, setUsuarios] = useState<UsuarioModel[]>();
+    const[usuarios, setUsuarios] = useState<UsuarioModel[]>([]);
 
     const navigate = useNavigate();
 
     const buscarUsuarios = () => {
-        userService.listar().then(usuarios => {
-            setUsuarios(usuarios);
+        userService.listar().then((usuarios: UsuarioModel[]) => {
+          const userConvertidos = usuarios.map((usuario) => {
+            let imgUrl: string | null = null;
+      
+            if (usuario.img && typeof usuario.img === 'string') {
+              imgUrl = `http://localhost:8080/imagens/${usuario.img}`;
+              console.log(imgUrl);
+            }
+            return { ...usuario, img: imgUrl };
+          });
+      
+          setUsuarios(userConvertidos);
         });
-    }
+      };
 
     const carregar = (id: number) => {
         navigate(`/usuario/${id}`); 
     }
 
     return (
-       <div>
-        <button onClick={buscarUsuarios} type="button">Pesquisar</button>
-            <table className="table-auto">
-                <thead>
-                    <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Nome</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Senha</th>
-                    <th scope="col">Data de Nascimento</th>
-                    <th></th>
-                    </tr>
+        <div className="flex flex-col">
+        <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+            <div className="overflow-hidden">
+            <button className="text-white" onClick={buscarUsuarios} type="button">Pesquisar</button>
+              <table className="min-w-full text-left text-sm font-light">
+                <thead className="border-b font-medium dark:border-neutral-500 text-white">
+                  <tr>
+                    <th scope="col" className="px-6 py-4">#</th>
+                    <th scope="col" className="px-6 py-4">Nome</th>
+                    <th scope="col" className="px-6 py-4">Ano</th>
+                    <th scope="col" className="px-6 py-4">Gênero</th>
+                    <th scope="col" className="px-6 py-4">Imagem</th>
+                    <th scope="col" className="px-6 py-4">Ações</th>
+                  </tr>
                 </thead>
                 <tbody>
-                    {
-                        usuarios?.map(usuario => {
-                            return (
-                                <tr>
-                                    <th scope="row">{usuario.id}</th>
-                                    <td>{usuario.nome}</td>
-                                    <td>{usuario.email}</td>
-                                    <td>{usuario.senha}</td>
-                                    <td>{usuario.dOB?.startDate ?? null}</td>
-                                    <td><button type="button" onClick={() => { carregar(usuario.id)}}>Carregar</button></td>
-                                </tr>
-                            )
-                        })
-                
-                    }
+                  {
+                    usuarios?.map((usuarios: UsuarioModel) =>  {
+                      {console.log(usuarios.dOB)}
+                      return (
+                          <tr key={usuarios.id} className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600">
+                              <th className="-nowrap px-6 py-4 font-medium text-white">{usuarios.id}</th>
+                              <td className="-nowrap px-6 py-4 text-white">{usuarios.nome}</td>
+                              <td className="-nowrap px-6 py-4 text-white">{usuarios.dOB.toString()}</td>
+                              <td className="-nowrap px-6 py-4 text-white">{usuarios.email}</td>
+                              <td className="-nowrap px-6 py-4 text-white">{usuarios.senha}</td>
+                              <td className="-nowrap px-6 py-4 text-white">
+                              {usuarios.img ? (
+                                // Se a capa for uma string (URL ou base64), basta usá-la diretamente
+                                <img src={usuarios.img} alt="Capa do Filme" className="h-16"   />
+                              ) : (
+                                "Sem imagem"
+                              )}
+                                </td>
+                              <td><button type="button" className="justify-center rounded-md bg-cyan-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-cyan-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(usuarios.id)}}>Carregar</button></td>
+                              <td><button type="button" className="justify-center rounded-md bg-red-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(usuarios.id)}}>Apagar</button></td>
+                          </tr>
+                      )
+                    })
+                  }
                 </tbody>
-                </table>
-       </div>
-       
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     );
 }
 
