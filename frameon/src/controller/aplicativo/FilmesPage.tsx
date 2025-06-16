@@ -98,12 +98,13 @@ const FilmesPage: React.FC<{}> = ({}) => {
                 {
                   filmes?.map((filme: Filme) =>  {
                     {console.log(filme.ano)}
+                    {console.log(filme.categoria_id)}
                     return (
                         <tr key={filme.id} className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600">
                             <th className="-nowrap px-6 py-4 font-medium text-white">{filme.id}</th>
                             <td className="-nowrap px-6 py-4 text-white">{filme.nome}</td>
                             <td className="-nowrap px-6 py-4 text-white">{filme.ano}</td>
-                            <td className="-nowrap px-6 py-4 text-white">{filme.genero}</td>
+                            <td className="-nowrap px-6 py-4 text-white">{filme.categoria}</td>
                             <td className="-nowrap px-6 py-4 text-white">
                             {filme.capa ? (
                               // Se a capa for uma string (URL ou base64), basta usá-la diretamente

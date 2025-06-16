@@ -4,8 +4,8 @@ const salvarF = async (filme: Filme) => {
     const data = {
         nome: filme.nome,
         ano: filme.ano, 
-        genero: filme.genero,
         capa: filme.capa,
+        categoria_id: filme.categoria_id,
       };
 
     return await fetch(`http://localhost:8080/api/filme`, {
@@ -48,6 +48,21 @@ const apagar = async (id: string) => {
     }) .then((response) => response.json());
 }
 
+const listarCategorias = async () => {
+    const response = await fetch("http://localhost:8080/api/categorias", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+  
+    if (!response.ok) {
+      throw new Error("Erro ao buscar categorias");
+    }
+  
+    return response.json();
+  };
 
 const uploadArquivo = async (arquivo: any) => {
     return await fetch(`http://localhost:8080/api/upload`, {
@@ -62,6 +77,7 @@ const filmeService = {
     listar,
     buscarPorId,
     apagar,
+    listarCategorias,
     uploadArquivo
 };
 

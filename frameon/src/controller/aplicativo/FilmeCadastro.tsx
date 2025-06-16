@@ -15,7 +15,7 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
   const { control, register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
       nome: '',
-      genero: '',
+      categoria_id: '',
       ano: '',
       capa: '',
     }
@@ -27,20 +27,26 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
   const[openOnSuccess, setOpenOnSuccess] = useState(false);
   const[filme, setFilme] = useState<Filme>();
   const[file, setFile] = useState('');
+  const [categorias, setCategorias] = useState<{ id: number, nome: string }[]>([]);
+  const [novaCategoria, setNovaCategoria] = useState('');
   const navigate = useNavigate();
 
   const {id} = useParams();
 
-  useEffect(() => {
+  useEffect(() => {        
+    filmeService.listarCategorias()
+      .then(categorias => setCategorias(categorias))
+      .catch(err => console.error("Erro ao carregar categorias", err));
     if (id) {
         filmeService.buscarPorId(id).then(filme => {
             console.log(filme);
             setFilme(filme);
             setValue("nome", filme.nome);
             setValue("ano", filme.ano || '');
-            setValue("genero", filme.genero);
+            setValue("categoria_id", filme.categoria_id);
             setValue("capa", filme.capa);
         });
+
     } else {
         console.log('id não econtrado');
     }
@@ -66,6 +72,21 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
     setOpen(true);
   };
 
+  const adicionarCategoria = () => {
+    if (!novaCategoria) return;
+    fetch('/api/categorias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: novaCategoria }),
+    })
+      .then(res => res.json())
+      .then(cat => {
+        setCategorias(prev => [...prev, cat]);
+        setNovaCategoria('');
+      })
+      .catch(err => console.error(err));
+  };
+
 
   const salvar = (data: any) => {
     console.log('salvar');
@@ -75,8 +96,8 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
       id: id,
       nome: data.nome,
       ano: data.ano || null,
-      genero: data.genero,
       capa: data.capa || null,
+      categoria_id: data.categoria_id,
     };
 
     setFilme(novoFilme);
@@ -209,20 +230,22 @@ useEffect(() => { console.log(filme) },[filme]);
           </div>
 
           <div>
-            <label htmlFor="genero" className="block text-sm/6 font-medium text-white">
+            <label htmlFor="categoria" className="block text-sm/6 font-medium text-white">
               Gênero
             </label>
             <div className="mt-2">
-              <input
-                {...register('genero', {
-                  required: 'Um gênero é necessário.',
-                  })}
-                id="genero"
-                name="genero"
-                type="text"
-                required
-                className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-              />
+              <select
+                {...register("categoria_id", { required: "Um gênero é obrigatório." })}
+                id="categoria_id"
+                name="categoria_id"
+                className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-white sm:text-sm/6"
+              >
+                <option value="">Selecione um gênero</option>
+
+                {categorias.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                ))}
+              </select>
             </div>
           </div>
 

@@ -4,4 +4,6 @@ export interface Filme {
     ano: string | null;
     genero?: string;
     capa: string | null;
+    categoria_id: any;
+    categoria?: string; 
   }
