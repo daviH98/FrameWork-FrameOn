@@ -7,68 +7,74 @@ import logo from '../../assets/logo.png';
 import { Controller, useForm } from 'react-hook-form';
 import { ErrorMessage } from '@hookform/error-message';
 import Datepicker from 'react-tailwindcss-datepicker';
-import { PhotoIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { PhotoIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import Modal from '../../assets/modal.jsx';
+import { IMaskInput } from 'react-imask';
 
 const FilmeCadastro: React.FC<{}> = ({}) => {
   const { control, register, handleSubmit, formState: { errors }, setValue } = useForm({
     defaultValues: {
       nome: '',
       genero: '',
-      ano: {
-        startDate: null,
-        endDate: null,
-      },
+      ano: '',
       capa: '',
     }
   });
 
-  const [nome, setNome] = useState('');
-  const [ano, setAno] = useState('');
-  const [genero, setGenero] = useState('');
-  const[file, setFile] = useState('');
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalSuccess, setSuccess] = useState<string | null>(null);
   const[open, setOpen] = useState(false);
-
+  const[openOnSuccess, setOpenOnSuccess] = useState(false);
   const[filme, setFilme] = useState<Filme>();
+  const[file, setFile] = useState('');
+  const navigate = useNavigate();
 
   const {id} = useParams();
 
   useEffect(() => {
     if (id) {
         filmeService.buscarPorId(id).then(filme => {
-            console.log(filme)
-            setNome(filme.nome);
-            setAno(filme.ano);
-            setGenero(filme.genero);
-            setFile(filme.capa);
+            console.log(filme);
+            setFilme(filme);
+            setValue("nome", filme.nome);
+            setValue("ano", filme.ano || '');
+            setValue("genero", filme.genero);
+            setValue("capa", filme.capa);
         });
     } else {
         console.log('id não econtrado');
     }
-}, [id]);
+}, [id, setValue]);
+
+  function isValidDate(dateString: string) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    if (!day || !month || !year) return false;
+
+    const date = new Date(year, month - 1, day);
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    );
+  }
+
+  const onErrors = (errors: any) => {
+    const firstErrorField = Object.keys(errors)[0];
+    const firstErrorMessage = errors[firstErrorField]?.message || 'Erro desconhecido';
+  
+    setModalError(firstErrorMessage);
+    setOpen(true);
+  };
 
 
   const salvar = (data: any) => {
     console.log('salvar');
     console.log(data);
 
-    // Verifica se startDate é uma data e converte para string
-    let startDate = data.ano?.startDate;
-
-    // Log para verificar o valor de startDate
-    console.log("startDate", startDate);
-
-    if (startDate instanceof Date) {
-      startDate = startDate.toISOString().slice(0, 10);
-    }
-
-    // Caso seja uma string, não faz nada
-    console.log("startDate após conversão", startDate);
-
     const novoFilme: Filme = {
       id: id,
       nome: data.nome,
-      ano: startDate || null,
+      ano: data.ano || null,
       genero: data.genero,
       capa: data.capa || null,
     };
@@ -79,28 +85,15 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
       .then(result => {
         console.log("Salvou com sucesso!");
         console.log(result);
+        setSuccess('O filme foi cadastrado com sucesso.');
+        setOpenOnSuccess(true);
       })
       .catch(error => {
         console.error(error);
+        setModalError('Erro ao salvar o filme.');
+        setOpen(true);
       });
   };
-
-  // const editarFilme = (index: number) => {
-  //   setForm({
-  //     nome: filmes[index].nome,
-  //     ano: filmes[index].ano?.toString() || '',
-  //     genero: filmes[index].genero || '',
-  //     capa: filmes[index].capa,
-  //   });
-  //   setEditandoIndex(index);
-  // };
-
-  // const excluirFilme = (index: number) => {
-  //   const atualizados = filmes.filter((_, i) => i !== index);
-  //   setFilmes(atualizados);
-  //   setForm({ nome: '', ano: '', genero: '', capa: null });
-  //   setEditandoIndex(null);
-  // };
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log('capturar arquivo');
@@ -109,11 +102,12 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
     const allowed = ["image/png", "image/jpeg", "image/jpg"];
 
     if (!file) {
-        console.log('Por favor, selecione um arquivo');
+        setModalError('Por favor, selecione um arquivo.');
         return;
     }
 
     if (file.size > 1048576 || !allowed.includes(file.type)) {
+      setModalError('Por favor, selecione uma imagem PNG ou JPG de até 1MB.');
       setOpen(true);
       return;
     }
@@ -142,10 +136,17 @@ useEffect(() => { console.log(filme) },[filme]);
           <ExclamationTriangleIcon className="h-8 w-8 text-red-600 mb-2" />
           <div className="text-center">
             <h3 className="text-lg font-black text-white">Erro!</h3>
-            <p className="text-sm text-white mt-2">
-              A imagem não pode ser reconhecida.<br />
-              Por favor, selecione uma imagem em PNG ou JPG de até 1mb.
-            </p>
+            <p className="text-sm text-white mt-2">{modalError}</p>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/');}}>
+        <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
+          <CheckCircleIcon className="h-8 w-8 text-green-600 mb-2" />
+          <div className="text-center">
+            <h3 className="text-lg font-black text-white">Sucesso!</h3>
+            <p className="text-sm text-white mt-2">{modalSuccess}</p>
           </div>
         </div>
       </Modal>
@@ -169,20 +170,16 @@ useEffect(() => { console.log(filme) },[filme]);
             <div className="mt-2">
               <input
                 {...register("nome", {
-                    required: 'O campo precisa ser preenchido.'
+                    required: `O campo 'Nome' precisa ser preenchido.`
                     , maxLength: { value: 60, message: 'O campo deve ser menor que 60' },
                 })}
                 id="nome"
                 name="nome"
-                value={nome}
                 type="text"
                 required
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
               />
             </div>
-            <label className="error-message">
-                <ErrorMessage errors={errors} name="nome" />
-            </label>
           </div>
 
           <div>
@@ -191,21 +188,22 @@ useEffect(() => { console.log(filme) },[filme]);
             </label>
             <div>
             <Controller
+              name="ano"
               control={control}
               rules={{
-                required: true,
+                required: `O campo 'Data de lançamento' precisa ser preenchido.`,
+                validate: (value) =>
+                  isValidDate(value) || 'Data inválida, use o formato DD/MM/AAAA',
               }}
-              render={({ field: { onChange, value } }) => (
-                <Datepicker
-                  value={value}
-                  onChange={onChange}
-                  displayFormat="DD/MM/YYYY"
-                  primaryColor={"yellow"}
-                  useRange={false}
-                  asSingle={true}
+              render={({ field }) => (
+                <IMaskInput
+                  {...field}
+                  mask="00/00/0000"
+                  placeholder="DD/MM/AAAA"
+                  className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                  onAccept={(value: string) => field.onChange(value)}
                 />
               )}
-              name="ano"
             />
             </div>
           </div>
@@ -220,7 +218,6 @@ useEffect(() => { console.log(filme) },[filme]);
                   required: 'Um gênero é necessário.',
                   })}
                 id="genero"
-                value={genero}
                 name="genero"
                 type="text"
                 required
@@ -267,7 +264,7 @@ useEffect(() => { console.log(filme) },[filme]);
             <button
               type="submit"
               className="flex w-full justify-center rounded-md bg-yellow-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-yellow-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              onClick={handleSubmit(salvar)}
+              onClick={handleSubmit(salvar, onErrors)}
             >
               Registrar
             </button>

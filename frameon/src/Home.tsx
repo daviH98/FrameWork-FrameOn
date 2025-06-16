@@ -4,25 +4,46 @@ import { useNavigate } from 'react-router-dom';
 import { Filme } from './model/Filme.model';
 import logo from "./assets/logo.png";
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import Modal from './assets/modal.jsx';
 
-const navigation = [
-  { name: 'Filmes', href: '#', current: false },
-  { name: 'Favoritos', href: '#', current: false },
-  { name: 'Sobre', href: '#', current: false },
-  { name: 'Cadastro', href: '/usuario', current: false },
-]
-
-function classNames(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
-}
-
-function Home() {
+const Home: React.FC<{}> = ({}) =>  {
   const navigate = useNavigate();
+  const navigation = [
+    { name: 'Catálogo', href: '/', current: true },
+    { name: 'Sobre', href: '#', current: false },
+    { name: 'Meus alugados', href: '/alugados', current: false },
+  ]
+  
+  function classNames(...classes: any[]) {
+    return classes.filter(Boolean).join(' ')
+  }
+
+  const [modalSuccess, setSuccess] = useState<string | null>(null);
+  const[open, setOpen] = useState(false);
+  const[openOnSuccess, setOpenOnSuccess] = useState(false);
+  
+  const signOut = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    localStorage.removeItem('token');
+    setSuccess('Você saiu da sua conta.');
+    setOpenOnSuccess(true);
+  };
+  
 
 
   return (
     <>
+    <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/login');}}>
+        <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
+          <CheckCircleIcon className="h-8 w-8 text-green-600 mb-2" />
+          <div className="text-center">
+            <h3 className="text-lg font-black text-white">Sucesso!</h3>
+            <p className="text-sm text-white mt-2">{modalSuccess}</p>
+          </div>
+        </div>
+      </Modal>
+
       {/* Navbar */}
       <Disclosure as="nav" className="bg-black">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -52,7 +73,7 @@ function Home() {
                     href={item.href}
                     aria-current={item.current ? 'page' : undefined}
                     className={classNames(
-                      item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-white hover:text-black',
+                      item.current ? 'bg-white text-black' : 'text-gray-300 hover:bg-white hover:text-black',
                       'rounded-md px-3 py-2 text-sm font-medium',
                     )}
                   >
@@ -70,10 +91,8 @@ function Home() {
                 <MenuButton className="relative flex rounded-full bg-gray-800 text-sm">
                   <span className="absolute -inset-1.5" />
                   <span className="sr-only">Open user menu</span>
-                  <img
-                    alt=""
-                    src={"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
-                    className="size-8 rounded-full"
+                  <UserCircleIcon
+                    className="text-white size-8 rounded-full"
                   />
                 </MenuButton>
               </div>
@@ -91,7 +110,8 @@ function Home() {
                 </MenuItem>
                 <MenuItem>
                   <a
-                    href="#"
+                    href='#'
+                    onClick={signOut}
                     className="block px-4 py-2 text-sm text-white hover:bg-white hover:text-black data-focus:bg-gray-100 data-focus:outline-hidden"
                   >
                     Sair

@@ -26,6 +26,41 @@ const FilmesPage: React.FC<{}> = ({}) => {
     });
   };
 
+  const deleteUser = async(id: any) => {
+      if(!window.confirm("Deseja excluir?")) {return;} else {
+        console.log("chamou o excluir");
+        console.log(id);
+        try {
+        const response = await fetch(`http://localhost:8080/api/filme/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const result = await response.json();
+
+          if (response.ok) {
+            alert("Filme deletado com sucesso!");
+            window.location.reload();
+          } else {
+            alert(`Erro: ${result.message}`);
+          }
+        } else {
+          // A resposta não é JSON
+          const text = await response.text();
+          console.warn("Resposta inesperada:", text);
+          alert("Erro inesperado ao excluir o filme.");
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao excluir o filme.");
+      }
+    }
+  }
+
   const carregar = (id: number) => {
       navigate(`/filme/${id}`); 
   }
@@ -67,7 +102,7 @@ const FilmesPage: React.FC<{}> = ({}) => {
                         <tr key={filme.id} className="border-b transition duration-300 ease-in-out hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600">
                             <th className="-nowrap px-6 py-4 font-medium text-white">{filme.id}</th>
                             <td className="-nowrap px-6 py-4 text-white">{filme.nome}</td>
-                            <td className="-nowrap px-6 py-4 text-white">{filme.ano.toString()}</td>
+                            <td className="-nowrap px-6 py-4 text-white">{filme.ano}</td>
                             <td className="-nowrap px-6 py-4 text-white">{filme.genero}</td>
                             <td className="-nowrap px-6 py-4 text-white">
                             {filme.capa ? (
@@ -78,7 +113,7 @@ const FilmesPage: React.FC<{}> = ({}) => {
                             )}
                               </td>
                             <td><button type="button" className="justify-center rounded-md bg-cyan-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-cyan-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(filme.id)}}>Carregar</button></td>
-                            <td><button type="button" className="justify-center rounded-md bg-red-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(filme.id)}}>Apagar</button></td>
+                            <td><button type="button" className="justify-center rounded-md bg-red-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { deleteUser(filme.id)}}>Apagar</button></td>
                         </tr>
                     )
                   })

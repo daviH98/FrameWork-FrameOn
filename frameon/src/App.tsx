@@ -16,12 +16,12 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login/>}/>
           <Route path="/usuario" element={<Cadastro/>}/>
-          <Route path="/filme" element={<FilmeCadastro/>}/>
-          <Route path="/filme/:id" element={<FilmeCadastro />} />
-          <Route path="/lista-filmes" element={<FilmesPage/>}/>
 
           <Route element={<ProtectedRoute/>}/>
             <Route path="/" element={<Home/>}/>
+            <Route path="/filme" element={<FilmeCadastro/>}/>
+            <Route path="/filme/:id" element={<FilmeCadastro />} />
+            <Route path="/lista-filmes" element={<FilmesPage/>}/>
             <Route path="/usuario/:id" element={<Cadastro/>}/>
             <Route path="/lista-usuario" element={<ListaUsers/>}/>
         </Routes>

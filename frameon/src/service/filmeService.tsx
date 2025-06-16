@@ -32,6 +32,15 @@ const listar = async (): Promise<Filme[]> => {
 
 const buscarPorId = async (id: string) => {
     return await fetch(`http://localhost:8080/api/filme/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    }) .then((response) => response.json());
+}
+
+const apagar = async (id: string) => {
+    return await fetch(`http://localhost:8080/api/filme/${id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -52,6 +61,7 @@ const filmeService = {
     salvarF,
     listar,
     buscarPorId,
+    apagar,
     uploadArquivo
 };
 

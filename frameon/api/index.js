@@ -110,26 +110,31 @@ app.post('/api/usuario', function (req,res) {
 
 
 //endpoint para resgatar um usuário
-app.get('/api/usuario', function (req,res) {
+app.get('/api/usuario', authenticate, function (req,res) {
     let sql = "SELECT u.id, u.nome, u. email, u.senha, u.dOB, u.img FROM usuario u";
     conn.query(sql, function (err, result) {
         if (err) res.status(500).json(err);
-        const usersDOBFormat = result.map(usuario => {
-            if (usuario.dOB) {
-                // Formata a data no formato YYYY-MM-DD se necessário
-                usuario.dOB = new Date(usuario.dOB).toISOString().slice(0, 10);
-            }
-            return usuario;
-        });
-        res.status(200).json(usersDOBFormat);
+        res.status(200).json(result);
     });
 });
 
 //endpoint para capturar um usuário por id
-app.get('/api/usuario/:id', (req, res) => {
+app.get('/api/usuario/:id', authenticate, (req, res) => {
     const { id } = req.params;
 
     let sql = `SELECT u.id, u.nome, u.email, u.senha, u.img, u.dOB FROM usuario u WHERE u.id = ${id}`;
+    conn.query(sql, function (err, result) {
+        if (err) throw err;
+        console.log(result)
+        res.status(200).json(result[0]);
+    });
+});
+
+//endpoint para capturar um filme por id
+app.delete('/api/usuario/:id', authenticate, (req, res) => {
+    const { id } = req.params;
+
+    let sql = `DELETE FROM USUARIO WHERE ID = ${id}`;
     conn.query(sql, function (err, result) {
         if (err) throw err;
         console.log(result)
@@ -142,7 +147,7 @@ app.get('/api/usuario/:id', (req, res) => {
 // FILMES ---------------------------------------------------------------------------------
 
 //endpoint para cadastrar um filme
-app.post('/api/filme', function (req,res) {
+app.post('/api/filme', authenticate, function (req,res) {
     var filme = req.body;
     var sql = '';
     if(filme.id) {
@@ -163,23 +168,16 @@ app.post('/api/filme', function (req,res) {
 });
 
 //endpoint para resgatar um filme
-app.get('/api/filme', function (req,res) {
+app.get('/api/filme', authenticate, function (req,res) {
     let sql = "SELECT f.id, f.nome, f.ano, f.genero, f.capa FROM filme f";
     conn.query(sql, function (err, result) {
         if (err) res.status(500).json(err);
-        const filmesComAnoFormatado = result.map(filme => {
-            if (filme.ano) {
-                // Formata a data no formato YYYY-MM-DD se necessário
-                filme.ano = new Date(filme.ano).toISOString().slice(0, 10);
-            }
-            return filme;
-        });
-        res.status(200).json(filmesComAnoFormatado);
+        res.status(200).json(result);
     });
 });
 
 //endpoint para capturar um filme por id
-app.get('/api/filme/:id', (req, res) => {
+app.get('/api/filme/:id', authenticate, (req, res) => {
     const { id } = req.params;
 
     let sql = `SELECT f.id, f.nome, f.genero, f.ano, f.capa FROM filme f WHERE f.id = ${id}`;
@@ -189,6 +187,27 @@ app.get('/api/filme/:id', (req, res) => {
         res.status(200).json(result[0]);
     });
 });
+
+//endpoint para capturar um filme por id
+app.delete('/api/filme/:id', authenticate, (req, res) => {
+    const { id } = req.params;
+
+    let sql = `DELETE FROM FILME WHERE ID = ${id}`;
+    conn.query(sql, function (err, result) {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Erro interno no servidor.' });
+          }
+      
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Filme não encontrado.' });
+          }
+      
+          res.status(200).json({ message: 'Filme deletado com sucesso.' });
+        });
+});
+
+// ---------------------------------------------------------------------------------
 
 app.post('/api/upload', upload.single('file'), function (req, res) {
     if (!req.file) return res.status(400).send('Nenhum arquivo enviado');

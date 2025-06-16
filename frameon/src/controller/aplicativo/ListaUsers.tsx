@@ -28,6 +28,41 @@ const ListaUsers: React.FC<{}> = ({}) => {
         });
       };
 
+      const deleteUser = async(id: any) => {
+        if(!window.confirm("Deseja excluir?")) {return;} else {
+          console.log("chamou o excluir");
+          console.log(id);
+          try {
+          const response = await fetch(`http://localhost:8080/api/usuario/${id}`, {
+              method: "DELETE",
+              headers: {
+                  "Content-Type": "application/json",
+              }
+          });
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const result = await response.json();
+  
+            if (response.ok) {
+              alert("Usuário deletado com sucesso!");
+              window.location.reload();
+            } else {
+              alert(`Erro: ${result.message}`);
+            }
+          } else {
+            // A resposta não é JSON
+            const text = await response.text();
+            console.warn("Resposta inesperada:", text);
+            alert("Erro inesperado ao excluir o usuário.");
+          }
+  
+        } catch (error) {
+          console.error(error);
+          alert("Erro ao excluir o usuário.");
+        }
+      }
+    }
+
     const carregar = (id: number) => {
         navigate(`/usuario/${id}`); 
     }
@@ -43,8 +78,9 @@ const ListaUsers: React.FC<{}> = ({}) => {
                   <tr>
                     <th scope="col" className="px-6 py-4">#</th>
                     <th scope="col" className="px-6 py-4">Nome</th>
-                    <th scope="col" className="px-6 py-4">Ano</th>
-                    <th scope="col" className="px-6 py-4">Gênero</th>
+                    <th scope="col" className="px-6 py-4">Data de Nascimento</th>
+                    <th scope="col" className="px-6 py-4">Email</th>
+                    <th scope="col" className="px-6 py-4">Senha</th>
                     <th scope="col" className="px-6 py-4">Imagem</th>
                     <th scope="col" className="px-6 py-4">Ações</th>
                   </tr>
@@ -69,7 +105,7 @@ const ListaUsers: React.FC<{}> = ({}) => {
                               )}
                                 </td>
                               <td><button type="button" className="justify-center rounded-md bg-cyan-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-cyan-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(usuarios.id)}}>Carregar</button></td>
-                              <td><button type="button" className="justify-center rounded-md bg-red-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(usuarios.id)}}>Apagar</button></td>
+                              <td><button type="button" className="justify-center rounded-md bg-red-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { deleteUser(usuarios.id)}}>Apagar</button></td>
                           </tr>
                       )
                     })
