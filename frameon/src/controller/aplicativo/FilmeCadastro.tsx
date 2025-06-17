@@ -52,18 +52,6 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
     }
 }, [id, setValue]);
 
-  function isValidDate(dateString: string) {
-    const [day, month, year] = dateString.split('/').map(Number);
-    if (!day || !month || !year) return false;
-
-    const date = new Date(year, month - 1, day);
-    return (
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day
-    );
-  }
-
   const onErrors = (errors: any) => {
     const firstErrorField = Object.keys(errors)[0];
     const firstErrorMessage = errors[firstErrorField]?.message || 'Erro desconhecido';
@@ -205,27 +193,20 @@ useEffect(() => { console.log(filme) },[filme]);
 
           <div>
             <label htmlFor="ano" className="block text-sm/6 font-medium text-white">
-              Data de lançamento
+              Ano de lançamento
             </label>
             <div>
-            <Controller
-              name="ano"
-              control={control}
-              rules={{
-                required: `O campo 'Data de lançamento' precisa ser preenchido.`,
-                validate: (value) =>
-                  isValidDate(value) || 'Data inválida, use o formato DD/MM/AAAA',
-              }}
-              render={({ field }) => (
-                <IMaskInput
-                  {...field}
-                  mask="00/00/0000"
-                  placeholder="DD/MM/AAAA"
-                  className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                  onAccept={(value: string) => field.onChange(value)}
-                />
-              )}
-            />
+            <input
+                {...register("ano", {
+                    required: `O campo 'Ano de lançamento' precisa ser preenchido.`
+                    , maxLength: { value: 4, message: 'O campo deve conter 4 caracteres.' },
+                })}
+                id="ano"
+                name="ano"
+                type="text"
+                required
+                className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+              />
             </div>
           </div>
 

@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
 const PORT = 8080;
 
@@ -43,8 +45,8 @@ conn.connect(function (err) {
     console.log("SQL Connected!")
 });
 
-const generateToken = (id, email) => {
-    return jwt.sign({id: id, email: email}, 'meusegredoabc', {
+const generateToken = (id, email, role) => {
+    return jwt.sign({id, email, role}, JWT_SECRET, {
         expiresIn: '1h'
     });
 }
@@ -53,20 +55,58 @@ const verifyToken = (token) => {
     return jwt.verify(token, 'meusegredoabc');
 };
 
+function verificarAdmin(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ mensagem: "Token não fornecido." });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ mensagem: "Acesso negado. Apenas administradores." });
+    }
+
+    req.usuario = decoded; // opcional, caso precise do usuário no controller
+    next();
+  } catch (error) {
+    return res.status(401).json({ mensagem: "Token inválido." });
+  }
+}
+
 // USUÁRIOS ---------------------------------------------------------------------------------
 
 app.post('/api/login', function (req,res) {
+    console.log('Rota /api/login chamada');
+    console.log('req.body:', req.body);
     let usuario = req.body;
-    const sql = `SELECT u.id, u.email, u.senha FROM usuario u WHERE u.email = ? AND u.senha = ?`;
+    const sql = `SELECT u.id, u.email, u.senha, u.role FROM usuario u WHERE u.email = ? AND u.senha = ?`;
 
-    conn.query(sql, [usuario.email, usuario.senha], function (err, result) {
-        if(err) throw err;
-        usuario.id = result[0].id;
-        usuario.senha = result[0].senha;
+    conn.query(sql, [usuario.email, usuario.senha, usuario.role], function (err, result) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Erro no servidor' });
+      }
+      if (result.length === 0) {
+        return res.status(401).json({ message: 'Usuário ou senha incorretos' });
+      }
+
+      console.log('Resultado da query:', result);
+
+      const user = result[0];
+      const token = generateToken(user.id, user.email, user.role);
+  
+      res.status(200).json({
+        message: 'Login realizado com sucesso',
+        user: { id: user.id, email: user.email, role: user.role },
+        token: token
+      });
+      console.log(usuario);
     });
-
-    token = generateToken(usuario.id, usuario.email);
-    res.json({token: token});
 })
 
 function authenticate(req, res, next) {
@@ -88,23 +128,34 @@ function authenticate(req, res, next) {
 //endpoint para cadastrar um usuário
 app.post('/api/usuario', function (req,res) {
     var usuario = req.body;
-    var sql = '';
+    let sql, values;
     if(usuario.id) {
         sql = `UPDATE usuario SET
-        nome = ${usuario.nome}
-        email = ${usuario.email}, 
-        senha = ${usuario.senha},
-        dOB = ${usuario.dOB},
-        img = ${usuario.img} 
-        WHERE id = ${usuario.id}`;
+        nome = ?,
+        email = ?, 
+        senha = ?,
+        dOB = ?,
+        role = ?
+        WHERE id = ?`;
+        values = [usuario.nome, usuario.email, usuario.senha, usuario.dOB, usuario.role, usuario.id];
     } else {
-        sql = `INSERT INTO usuario (nome, email, senha, dOB, img) VALUES ('${usuario.nome}','${usuario.email}', '${usuario.senha}', '${usuario.dOB}', '${usuario.img}')`;
+      sql = `INSERT INTO usuario (nome, email, senha, dOB, role) VALUES (?, ?, ?, ?, ?)`;
+      values = [usuario.nome, usuario.email, usuario.senha, usuario.dOB, usuario.role];
     }
 
-    conn.query(sql, function (err, result) {
-        if (err) throw err;
-        res.status(200).json(result);
-    })
+    conn.query(sql, values, function (err, result) {
+      if (err) {
+        console.error('Erro ao executar SQL:', err);
+        return res.status(500).json({ error: 'Erro ao salvar usuário' });
+      }
+
+      const token = generateToken(result.insertId, usuario.email, usuario.role);
+      res.status(200).json({
+            message: 'Usuário salvo com sucesso',
+            result,
+            token: token
+        });
+    });
 });
 
 
@@ -147,7 +198,7 @@ app.delete('/api/usuario/:id', authenticate, (req, res) => {
 // FILMES ---------------------------------------------------------------------------------
 
 //endpoint para cadastrar um filme
-app.post('/api/filme', function (req,res) {
+app.post('/api/filme', verificarAdmin, function (req,res) {
     var filme = req.body;
     filme.categoria_id = filme.categoria_id || filme.categoriaId;
     var sql = '';
@@ -192,7 +243,7 @@ app.get('/api/filme/:id', (req, res) => {
 });
 
 //endpoint para capturar um filme por id
-app.delete('/api/filme/:id', authenticate, (req, res) => {
+app.delete('/api/filme/:id', verificarAdmin, (req, res) => {
     const { id } = req.params;
 
     let sql = `DELETE FROM FILME WHERE ID = ${id}`;
@@ -215,7 +266,7 @@ app.delete('/api/filme/:id', authenticate, (req, res) => {
 // CATEGORIAS ---------------------------------------------------------------------------------
 
 //endpoint para cadastrar uma categoria
-app.post('/api/categoria', authenticate, function (req, res) {
+app.post('/api/categoria', verificarAdmin, function (req, res) {
     const { nome } = req.body;
     if (!nome) return res.status(400).json({ error: 'Nome da categoria obrigatório' });
   
@@ -226,7 +277,7 @@ app.post('/api/categoria', authenticate, function (req, res) {
   });
   
 // Listar todas as categorias
-app.get('/api/categorias', function (req, res) {
+app.get('/api/categorias', verificarAdmin, function (req, res) {
     const sql = 'SELECT * FROM categoria';
   
     conn.query(sql, function (err, result) {
@@ -240,7 +291,7 @@ app.get('/api/categorias', function (req, res) {
   });
 
 // Buscar categoria por ID
-app.get('/api/categoria/filme/:filmeID', authenticate, function (req, res) {
+app.get('/api/categorias/:filmeID', verificarAdmin, function (req, res) {
     const { filmeID } = req.params;
     const sql = `SELECT * FROM CATEGORIA WHERE filmeID = ${filmeID}`;
     conn.query(sql, function (err, result) {
@@ -250,7 +301,7 @@ app.get('/api/categoria/filme/:filmeID', authenticate, function (req, res) {
   });
 
 // Deletar categoria
-app.delete('/api/categoria/:filmeID', authenticate, function (req, res) {
+app.delete('/api/categoria/:filmeID', verificarAdmin, function (req, res) {
     const { id } = req.params;
 
     const sql = `DELETE FROM CATEGORIA WHERE id = ${id}`;
@@ -296,4 +347,5 @@ app.get('/api/image',function(req, res){
 app.listen(PORT, function (err) {
     if (err) console.log(err);
     console.log("Server listening on port", PORT);
+    console.log(`Secret key: ${JWT_SECRET}`);
 })

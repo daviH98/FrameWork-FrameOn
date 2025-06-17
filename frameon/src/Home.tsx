@@ -3,16 +3,38 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Filme } from './model/Filme.model';
 import logo from "./assets/logo.png";
+import test from "./assets/missao-impossivel.jpg";
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { HeartIcon, PlayIcon } from '@heroicons/react/24/solid';
 import Modal from './assets/modal.jsx';
+import Card from './assets/card';
+import filmeService from './service/filmeService';
 
 const Home: React.FC<{}> = ({}) =>  {
+  const[filmes, setFilme] = useState<Filme[]>([]);
   const navigate = useNavigate();
+
+  const buscarFilmes = () => {
+    filmeService.listar().then((filmes: Filme[]) => {
+      const filmesConvertidos = filmes.map((filme) => {
+        let capaUrl: string | null = null;
+  
+        if (filme.capa && typeof filme.capa === 'string') {
+          capaUrl = `http://localhost:8080/imagens/${filme.capa}`;
+          console.log(capaUrl);
+        }
+        return { ...filme, capa: capaUrl };
+      });
+  
+      setFilme(filmesConvertidos);
+    });
+  };
+  
   const navigation = [
     { name: 'Catálogo', href: '/', current: true },
-    { name: 'Sobre', href: '#', current: false },
-    { name: 'Meus alugados', href: '/alugados', current: false },
+    { name: 'Sobre', href: '/sobre', current: false },
+    { name: 'Favoritos', href: '/alugados', current: false },
   ]
   
   function classNames(...classes: any[]) {
@@ -29,11 +51,21 @@ const Home: React.FC<{}> = ({}) =>  {
     setSuccess('Você saiu da sua conta.');
     setOpenOnSuccess(true);
   };
-  
 
+  useEffect(() => {
+    buscarFilmes();
+  }, []);
 
   return (
-    <>
+    <div
+        className="min-h-screen"
+        style={{
+          backgroundImage: `url('/funda.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+    >
     <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/login');}}>
         <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
           <CheckCircleIcon className="h-8 w-8 text-green-600 mb-2" />
@@ -57,7 +89,7 @@ const Home: React.FC<{}> = ({}) =>  {
               <XMarkIcon aria-hidden="true" className="hidden size-6 group-data-open:block" />
             </DisclosureButton>
           </div>
-          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-center">
             <div className="flex shrink-0 items-center">
               <img
                 alt="Your Company"
@@ -144,17 +176,33 @@ const Home: React.FC<{}> = ({}) =>  {
     </Disclosure>
 
       {/* Lista de Filmes */}
-      <div
-        className="min-h-screen bg-black text-white pt-24"
-        style={{
-          backgroundImage: `url('/funda.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
+      <div className="max-w-7xl mx-auto px-20">
+        <div className="py-20 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filmes?.map((filme: Filme) => {
+          console.log("Filmes:", filmes);
+          console.log(filme.ano)
+          console.log(filme.categoria_id)
+
+          return (
+            <Card imgSrc={filme.capa} key={filme.id}>
+              <h3 className="text-l font-bold mb-2 drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">{filme.nome}</h3>
+              <p className='drop-shadow-[0_2px_2px_rgba(0,0,0,1)]'>
+                {filme.ano} • {filme.categoria}
+              </p>
+              <div className="space-x-24 mt-4">
+                <button>
+                  <PlayIcon className="h-8 w-8 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
+                </button>
+                <button>
+                  <HeartIcon className="h-8 w-8 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
+                </button>
+              </div>
+            </Card>
+          );
+        })}
+        </div>
       </div>
-    </>
+      </div>
   );
 }
 

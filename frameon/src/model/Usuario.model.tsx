@@ -7,5 +7,5 @@ export interface UsuarioModel {
     startDate: string | null;
     endDate: string | null;
   };
-    img: string | null;
+    role: 'user';
 }

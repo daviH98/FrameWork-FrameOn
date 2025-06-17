@@ -8,6 +8,8 @@ import Home from './Home';
 import { Route, Routes, BrowserRouter } from 'react-router-dom';
 import './App.css';
 import FilmesPage from './controller/aplicativo/FilmesPage';
+import Sobre from './Sobre';
+import AdminDashboard from './admin/AdminDashboard';
 
 function App() {
   return (
@@ -16,14 +18,19 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login/>}/>
           <Route path="/usuario" element={<Cadastro/>}/>
+          <Route path="" element={<Home/>}/>
 
-          <Route element={<ProtectedRoute/>}/>
+          <Route element={<ProtectedRoute/>}>
             <Route path="/" element={<Home/>}/>
+            <Route path="/sobre" element={<Sobre/>}/>
             <Route path="/filme" element={<FilmeCadastro/>}/>
             <Route path="/filme/:id" element={<FilmeCadastro />} />
             <Route path="/lista-filmes" element={<FilmesPage/>}/>
             <Route path="/usuario/:id" element={<Cadastro/>}/>
             <Route path="/lista-usuario" element={<ListaUsers/>}/>
+            <Route path="/admin" element={<AdminDashboard/>}/>
+          </Route>
+
         </Routes>
       </BrowserRouter>
     </div>

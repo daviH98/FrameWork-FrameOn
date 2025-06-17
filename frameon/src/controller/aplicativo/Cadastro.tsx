@@ -20,11 +20,9 @@ const Usuario: React.FC<{}> = ({}) => {
         password: '',
         passwordConfirm: '',
         dOB: '',
-        img: '',
       }
     });
 
-    const[file, setFile] = useState('');
     const [modalError, setModalError] = useState<string | null>(null);
     const [modalSuccess, setSuccess] = useState<string | null>(null);
     const[open, setOpen] = useState(false);
@@ -41,7 +39,6 @@ const Usuario: React.FC<{}> = ({}) => {
               setValue("nome", usuario.nome);
               setValue("dOB", usuario.dOB || '');
               setValue("email", usuario.email);
-              setFile(usuario.img);
           });
       } else {
           console.log('id não econtrado');
@@ -85,7 +82,7 @@ const Usuario: React.FC<{}> = ({}) => {
       email: data.email,
       senha: data.password,
       dOB: data.dOB || null,
-      img: data.img || null
+      role: 'user'
     };
 
     setUsuario(novoUsuario);
@@ -103,38 +100,6 @@ const Usuario: React.FC<{}> = ({}) => {
         setOpen(true);
       });
   };
-
-    const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-      console.log('capturar arquivo');
-      console.log(event.target.files?.[0]);
-      let file = event.target.files?.[0];
-      const allowed = ["image/png", "image/jpeg", "image/jpg"];
-  
-      if (!file) {
-        setModalError('Por favor, selecione um arquivo.');
-        return;
-      }
-
-      if (file.size > 1048576 || !allowed.includes(file.type)) {
-        setModalError('Por favor, selecione uma imagem PNG ou JPG de até 1MB.');
-        setOpen(true);
-        return;
-      }
-  
-      const imagePreviewUrl = URL.createObjectURL(file);
-      setFile(imagePreviewUrl);
-  
-      const formData = new FormData();
-      formData.append('file', file);
-  
-      console.log('enviando o arquivo para o be');
-      usuarioService.uploadArquivo(formData).then(result => {
-        const fileName = result.filename;
-        setValue('img', fileName);
-      }).catch(err => {
-        console.error("Erro ao carregar a imagem:", err);
-      });
-  }
 
     useEffect(() => { console.log(usuario) },[usuario]);
 
@@ -216,40 +181,6 @@ const Usuario: React.FC<{}> = ({}) => {
             />
             </div>
           </div>
-
-          <div className="col-span-full space-y-2">
-              <label htmlFor="cover-photo" className="block text-sm/6 font-medium text-white">
-                Foto de perfil
-              </label>
-              <div className="mt-2 flex justify-center rounded-lg border border-dashed border-white/25 px-6 py-10">
-                <div className="text-center">
-                  <PhotoIcon aria-hidden="true" className="mx-auto size-12 text-gray-300" />
-                  <div className="mt-4 flex text-sm/6 text-gray-600">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer font-semibold text-yellow-400 hover:text-indigo-300"
-                    >
-                      <span>Escolha um arquivo</span>
-                      <input id="file-upload" name="file-upload" type="file" accept="image/png, image/jpeg" className="sr-only" onChange={handleUpload} />
-                    </label>
-                    <p className="pl-1 text-gray-200">ou arraste aqui</p>
-                  </div>
-                  <p className="text-xs/5 text-gray-200">PNG ou JPG até 1MB</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="cover-photo" className="block text-sm/6 font-medium text-white">
-                Prévia:
-              </label>
-              {file && (
-                <img
-                  src={file.startsWith('blob:') ? file : `http://localhost:8080/imagens/${file}`}
-                  className="h-48"
-                />
-              )}
-              </div>
-              
-            </div>
 
           <div>
             <label htmlFor="email" className="block text-sm/6 font-medium text-white">

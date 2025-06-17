@@ -1,4 +1,5 @@
 import { Filme } from "../model/Filme.model";
+const token = localStorage.getItem("token");
 
 const salvarF = async (filme: Filme) => {
     const data = {
@@ -12,6 +13,7 @@ const salvarF = async (filme: Filme) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(data),
     })

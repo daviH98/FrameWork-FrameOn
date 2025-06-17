@@ -15,13 +15,8 @@ const ListaUsers: React.FC<{}> = ({}) => {
     const buscarUsuarios = () => {
         userService.listar().then((usuarios: UsuarioModel[]) => {
           const userConvertidos = usuarios.map((usuario) => {
-            let imgUrl: string | null = null;
-      
-            if (usuario.img && typeof usuario.img === 'string') {
-              imgUrl = `http://localhost:8080/imagens/${usuario.img}`;
-              console.log(imgUrl);
-            }
-            return { ...usuario, img: imgUrl };
+        
+            return { ...usuario};
           });
       
           setUsuarios(userConvertidos);
@@ -81,7 +76,6 @@ const ListaUsers: React.FC<{}> = ({}) => {
                     <th scope="col" className="px-6 py-4">Data de Nascimento</th>
                     <th scope="col" className="px-6 py-4">Email</th>
                     <th scope="col" className="px-6 py-4">Senha</th>
-                    <th scope="col" className="px-6 py-4">Imagem</th>
                     <th scope="col" className="px-6 py-4">Ações</th>
                   </tr>
                 </thead>
@@ -96,14 +90,6 @@ const ListaUsers: React.FC<{}> = ({}) => {
                               <td className="-nowrap px-6 py-4 text-white">{usuarios.dOB.toString()}</td>
                               <td className="-nowrap px-6 py-4 text-white">{usuarios.email}</td>
                               <td className="-nowrap px-6 py-4 text-white">{usuarios.senha}</td>
-                              <td className="-nowrap px-6 py-4 text-white">
-                              {usuarios.img ? (
-                                // Se a capa for uma string (URL ou base64), basta usá-la diretamente
-                                <img src={usuarios.img} alt="Capa do Filme" className="h-16"   />
-                              ) : (
-                                "Sem imagem"
-                              )}
-                                </td>
                               <td><button type="button" className="justify-center rounded-md bg-cyan-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-cyan-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { carregar(usuarios.id)}}>Carregar</button></td>
                               <td><button type="button" className="justify-center rounded-md bg-red-700 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" onClick={() => { deleteUser(usuarios.id)}}>Apagar</button></td>
                           </tr>

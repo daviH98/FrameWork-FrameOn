@@ -43,8 +43,15 @@ const login = async (email: string, senha: string) => {
             senha:senha
         }),
     })
-        .then((response) => response.json());
-}
+        .then((response) => response.json())
+        .then(data => {
+            if (data.token) {
+              localStorage.setItem('token', data.token);
+              const payload = JSON.parse(atob(data.token.split('.')[1]));
+              console.log(payload);
+            }
+        });
+    }
 
 const uploadArquivo = async (arquivo: any) => {
     return await fetch(`http://localhost:8080/api/upload`, {

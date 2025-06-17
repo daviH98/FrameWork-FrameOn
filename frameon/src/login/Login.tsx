@@ -17,10 +17,7 @@ const Login: React.FC<{}> = ({ }) => {
 
         userService.login(email,senha).then(result => {
             console.log(result);
-
-            if (result.token) {
-                localStorage.setItem('token', result.token);
-                navigate('/');}
+            navigate('/');
         });
     }
 
