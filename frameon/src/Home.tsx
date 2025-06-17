@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Filme } from './model/Filme.model';
 import logo from "./assets/logo.png";
 import test from "./assets/missao-impossivel.jpg";
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon, UserCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { HeartIcon, PlayIcon } from '@heroicons/react/24/solid';
 import Modal from './assets/modal.jsx';

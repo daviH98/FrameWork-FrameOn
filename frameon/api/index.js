@@ -37,7 +37,8 @@ var conn = mysql.createConnection({
     host:"localhost",
     user:"root",
     password:"PUC@1234",
-    database:"web25"
+    database:"web25",
+    enableKeepAlive: true
 });
 
 conn.connect(function (err) {
@@ -231,10 +232,10 @@ app.get('/api/filme', function (req,res) {
 });
 
 //endpoint para capturar um filme por id
-app.get('/api/filme/:id', (req, res) => {
+app.get('/api/filme/:id', verificarAdmin, (req, res) => {
     const { id } = req.params;
 
-    let sql = `SELECT f.id, f.nome, f.ano, f.capa, c.nome AS categoria FROM filme f LEFT JOIN categoria c ON f.categoria_id = c.id WHERE f.id = ?`;
+    let sql = `SELECT f.id, f.nome, f.ano, f.capa, f.categoria_id, c.nome AS categoria FROM filme f LEFT JOIN categoria c ON f.categoria_id = c.id WHERE f.id = ?`;
     conn.query(sql, [id], function (err, result) {
         if (err) throw err;
         console.log(result)
@@ -270,15 +271,36 @@ app.post('/api/categoria', verificarAdmin, function (req, res) {
     const { nome } = req.body;
     if (!nome) return res.status(400).json({ error: 'Nome da categoria obrigatório' });
   
-    conn.query('INSERT INTO categorias (nome) VALUES (?)', [nome], (err, result) => {
+    conn.query('INSERT INTO CATEGORIA (nome) VALUES (?)', [nome], (err, result) => {
         if (err) return res.status(500).json({ error: 'Erro ao inserir categoria' });
         res.json({ id: result.insertId, nome });
       });
+});
+
+//endpoint para editar uma categoria
+app.put('/api/categoria/:id', verificarAdmin, function (req, res) {
+  const { id } = req.params;
+  const { nome } = req.body;
+
+  if (!nome) {
+    return res.status(400).json({ error: 'Nome da categoria é obrigatório' });
+  }
+
+  const sql = 'UPDATE CATEGORIA SET nome = ? WHERE id = ?';
+
+  conn.query(sql, [nome, id], function (err, result) {
+    if (err) {
+      console.error('Erro ao atualizar categoria:', err);
+      return res.status(500).json({ error: 'Erro ao atualizar categoria' });
+    }
+
+    res.json({ id, nome });
   });
+});
   
-// Listar todas as categorias
+//endpoint para listar uma categoria
 app.get('/api/categorias', verificarAdmin, function (req, res) {
-    const sql = 'SELECT * FROM categoria';
+    const sql = 'SELECT * FROM CATEGORIA';
   
     conn.query(sql, function (err, result) {
       if (err) {
@@ -291,26 +313,34 @@ app.get('/api/categorias', verificarAdmin, function (req, res) {
   });
 
 // Buscar categoria por ID
-app.get('/api/categorias/:filmeID', verificarAdmin, function (req, res) {
-    const { filmeID } = req.params;
-    const sql = `SELECT * FROM CATEGORIA WHERE filmeID = ${filmeID}`;
-    conn.query(sql, function (err, result) {
+app.get('/api/categorias/:id', verificarAdmin, function (req, res) {
+    const { id } = req.params;
+    const sql = `SELECT * FROM CATEGORIA WHERE id = ?`;
+    conn.query(sql, [id], function (err, result) {
       if (err) return res.status(500).json(err);
       res.status(200).json(result);
     });
-  });
+});
 
 // Deletar categoria
-app.delete('/api/categoria/:filmeID', verificarAdmin, function (req, res) {
+app.delete('/api/categoria/:id', verificarAdmin, function (req, res) {
     const { id } = req.params;
 
-    const sql = `DELETE FROM CATEGORIA WHERE id = ${id}`;
-    conn.query(sql, function (err, result) {
-    if (err) return res.status(500).json({ message: 'Erro ao deletar categoria' });
-    if (result.affectedRows === 0) return res.status(404).json({ message: 'Categoria não encontrada' });
+    const sql = `DELETE FROM categoria WHERE id = ?`;
+    conn.query(sql, [id], function (err, result) {
+      if (err) {
+          console.error('Erro ao deletar categoria:', err);
+          if (err.errno === 1451) { // código do erro de foreign key
+            return res.status(409).json({ message: 'Gênero não pode ser deletado pois está em uso por um ou mais filmes.' });
+          }
+          return res.status(500).json({ message: 'Erro ao deletar categoria' });
+      }
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ message: 'Categoria não encontrada' });
+      }
 
-    res.status(200).json({ message: 'Categoria deletada com sucesso' });
-    });
+      res.status(200).json({ message: 'Categoria deletada com sucesso' });
+  });
 });
 
 // ---------------------------------------------------------------------------------

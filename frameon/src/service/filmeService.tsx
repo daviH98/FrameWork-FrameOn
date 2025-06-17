@@ -33,21 +33,45 @@ const listar = async (): Promise<Filme[]> => {
 }
 
 const buscarPorId = async (id: string) => {
-    return await fetch(`http://localhost:8080/api/filme/${id}`, {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-        }
-    }) .then((response) => response.json());
-}
+    const token = localStorage.getItem('token');
 
-const apagar = async (id: string) => {
-    return await fetch(`http://localhost:8080/api/filme/${id}`, {
+    const response = await fetch(`http://localhost:8080/api/filme/${id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
         }
-    }) .then((response) => response.json());
+    });
+
+    if (!response.ok) {
+        console.error('Erro ao carregar filme:', response.status);
+        return;
+      }
+
+    const filme = await response.json();
+    console.log(filme);
+    return filme;
+}
+
+const apagar = async (id: string) => {
+    const token = localStorage.getItem('token');
+
+    const response = await fetch(`http://localhost:8080/api/filme/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        console.error('Erro ao deletar filme:', response.status);
+        return;
+      }
+
+    const filme = await response.json();
+    console.log(filme);
+    return filme;
 }
 
 const listarCategorias = async () => {

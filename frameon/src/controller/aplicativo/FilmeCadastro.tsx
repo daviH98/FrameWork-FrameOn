@@ -43,8 +43,9 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
             setFilme(filme);
             setValue("nome", filme.nome);
             setValue("ano", filme.ano || '');
-            setValue("categoria_id", filme.categoria_id);
-            setValue("capa", filme.capa);
+            setValue("categoria_id", String(filme.categoria_id));
+            console.log("Setando categoria_id:", filme.categoria_id);
+            setFile(filme.capa);
         });
 
     } else {
@@ -59,22 +60,6 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
     setModalError(firstErrorMessage);
     setOpen(true);
   };
-
-  const adicionarCategoria = () => {
-    if (!novaCategoria) return;
-    fetch('/api/categorias', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: novaCategoria }),
-    })
-      .then(res => res.json())
-      .then(cat => {
-        setCategorias(prev => [...prev, cat]);
-        setNovaCategoria('');
-      })
-      .catch(err => console.error(err));
-  };
-
 
   const salvar = (data: any) => {
     console.log('salvar');
@@ -215,6 +200,9 @@ useEffect(() => { console.log(filme) },[filme]);
               Gênero
             </label>
             <div className="mt-2">
+            {categorias.length === 0 ? (
+              <p>Carregando categorias...</p>
+            ) : (
               <select
                 {...register("categoria_id", { required: "Um gênero é obrigatório." })}
                 id="categoria_id"
@@ -222,11 +210,11 @@ useEffect(() => { console.log(filme) },[filme]);
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-white sm:text-sm/6"
               >
                 <option value="">Selecione um gênero</option>
-
                 {categorias.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                  <option key={cat.id} value={String(cat.id)}>{cat.nome}</option>
                 ))}
               </select>
+            )}
             </div>
           </div>
 
