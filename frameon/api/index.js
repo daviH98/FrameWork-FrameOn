@@ -150,7 +150,8 @@ app.post('/api/usuario', function (req,res) {
         return res.status(500).json({ error: 'Erro ao salvar usuário' });
       }
 
-      const token = generateToken(result.insertId, usuario.email, usuario.role);
+      const user = result[0];
+      const token = generateToken(user.insertId, user.email, user.role);
       res.status(200).json({
             message: 'Usuário salvo com sucesso',
             result,
@@ -220,6 +221,31 @@ app.post('/api/filme', verificarAdmin, function (req,res) {
     })
 });
 
+//endpoint para favoritar um filme
+app.post('/api/filme/:id/favorito', authenticate, (req, res) => {
+  const usuarioId = req.user.id;
+  const filmeId = req.params.id;
+
+  const sqlCheck = `SELECT * FROM favorito WHERE usuario_id = ? AND filme_id = ?`;
+  conn.query(sqlCheck, [usuarioId, filmeId], (err, results) => {
+    if (err) return res.status(500).json(err);
+
+    if (results.length > 0) {
+      const sqlDelete = `DELETE FROM favorito WHERE usuario_id = ? AND filme_id = ?`;
+      conn.query(sqlDelete, [usuarioId, filmeId], (err) => {
+        if (err) return res.status(500).json(err);
+        return res.json({ favoritado: false });
+      });
+    } else {
+      const sqlInsert = `INSERT INTO favorito (usuario_id, filme_id) VALUES (?, ?)`;
+      conn.query(sqlInsert, [usuarioId, filmeId], (err) => {
+        if (err) return res.status(500).json(err);
+        return res.json({ favoritado: true });
+      });
+    }
+  });
+});
+
 //endpoint para resgatar um filme
 app.get('/api/filme', function (req,res) {
     let sql = `SELECT f.id, f.nome, f.ano, f.capa, c.nome AS categoria
@@ -229,6 +255,22 @@ app.get('/api/filme', function (req,res) {
         if (err) res.status(500).json(err);
         res.status(200).json(result);
     });
+});
+
+//endpoint para resgatar filmes favoritos
+app.get('/api/filmes/favoritos', authenticate, (req, res) => {
+  const usuarioId = req.user.id;
+  const sql = `
+    SELECT f.*
+    FROM filme f
+    JOIN favorito fav ON f.id = fav.filme_id
+    WHERE fav.usuario_id = ?
+  `;
+
+  conn.query(sql, [usuarioId], (err, results) => {
+    if (err) return res.status(500).json(err);
+    res.json(results);
+  });
 });
 
 //endpoint para capturar um filme por id

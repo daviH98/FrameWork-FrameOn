@@ -96,6 +96,15 @@ const uploadArquivo = async (arquivo: any) => {
         body: arquivo,
     })
         .then((response) => response.json());
+};
+
+const favoritar = async (id: any) => {
+    return await fetch(`/api/filme/${id}/favorito`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+      },
+    });
 }
 
 const filmeService = {
@@ -104,7 +113,8 @@ const filmeService = {
     buscarPorId,
     apagar,
     listarCategorias,
-    uploadArquivo
+    uploadArquivo,
+    favoritar
 };
 
 export default filmeService

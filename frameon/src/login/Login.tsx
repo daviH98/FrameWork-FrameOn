@@ -17,7 +17,7 @@ const Login: React.FC<{}> = ({ }) => {
 
         userService.login(email,senha).then(result => {
             console.log(result);
-            navigate('/');
+            navigate('/home');
         });
     }
 

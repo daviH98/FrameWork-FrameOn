@@ -13,7 +13,10 @@ import filmeService from './service/filmeService';
 
 const Home: React.FC<{}> = ({}) =>  {
   const[filmes, setFilme] = useState<Filme[]>([]);
+  const [favoritado, setFavoritado] = React.useState(false);
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
 
   const buscarFilmes = () => {
     filmeService.listar().then((filmes: Filme[]) => {
@@ -30,12 +33,23 @@ const Home: React.FC<{}> = ({}) =>  {
       setFilme(filmesConvertidos);
     });
   };
+
+  function toggleFavorito() {
+     .then(res => res.json())
+      .then(data => {
+        setFavoritado(data.favoritado);
+      });
+  };
   
   const navigation = [
-    { name: 'Catálogo', href: '/', current: true },
+    { name: 'Catálogo', href: '/home', current: true },
     { name: 'Sobre', href: '/sobre', current: false },
     { name: 'Favoritos', href: '/alugados', current: false },
   ]
+
+  if (user && user.role === 'admin') {
+    navigation.push({ name: 'Admin', href: '/admin', current: false });
+  }
   
   function classNames(...classes: any[]) {
     return classes.filter(Boolean).join(' ')

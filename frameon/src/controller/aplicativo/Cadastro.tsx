@@ -115,7 +115,7 @@ const Usuario: React.FC<{}> = ({}) => {
         </div>
       </Modal>
 
-      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/');}}>
+      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/home');}}>
         <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
           <CheckCircleIcon className="h-8 w-8 text-green-600 mb-2" />
           <div className="text-center">

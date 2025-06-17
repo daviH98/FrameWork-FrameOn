@@ -135,7 +135,7 @@ const AdminDashboard: React.FC<{}> = ({}) =>  {
     }
     
     const navigation = [
-        { name: 'Catálogo', href: '/', current: false },
+        { name: 'Catálogo', href: '/home', current: false },
         { name: 'Sobre', href: '/sobre', current: false },
         { name: 'Favoritos', href: '/alugados', current: false },
         { name: 'Admin', href: '/admin', current: true },

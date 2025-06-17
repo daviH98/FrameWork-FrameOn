@@ -10,6 +10,8 @@ import './App.css';
 import FilmesPage from './controller/aplicativo/FilmesPage';
 import Sobre from './Sobre';
 import AdminDashboard from './admin/AdminDashboard';
+import Landing from './Landing';
+import { AdminRouter } from './AdminRouter';
 
 function App() {
   return (
@@ -18,15 +20,18 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login/>}/>
           <Route path="/usuario" element={<Cadastro/>}/>
-          <Route path="" element={<Home/>}/>
+          <Route path="" element={<Landing/>}/>
 
           <Route element={<ProtectedRoute/>}>
-            <Route path="/" element={<Home/>}/>
+            <Route path="/home" element={<Home/>}/>
             <Route path="/sobre" element={<Sobre/>}/>
+            <Route path="/usuario/:id" element={<Cadastro/>}/>
+          </Route>
+
+          <Route element={<AdminRouter/>}>
             <Route path="/filme" element={<FilmeCadastro/>}/>
             <Route path="/filme/:id" element={<FilmeCadastro />} />
             <Route path="/lista-filmes" element={<FilmesPage/>}/>
-            <Route path="/usuario/:id" element={<Cadastro/>}/>
             <Route path="/lista-usuario" element={<ListaUsers/>}/>
             <Route path="/admin" element={<AdminDashboard/>}/>
           </Route>
