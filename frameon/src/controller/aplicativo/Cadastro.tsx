@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import Datepicker from "react-tailwindcss-datepicker";
 import type { DateValueType } from "react-tailwindcss-datepicker";
-import { PhotoIcon, ExclamationTriangleIcon, CheckCircleIcon  } from '@heroicons/react/24/solid';
+import { EyeIcon, EyeSlashIcon, ExclamationTriangleIcon, CheckCircleIcon,  } from '@heroicons/react/24/solid';
 import logo from "../../assets/logo.png";
 import Modal from "../../assets/modal";
 import { IMaskInput } from "react-imask";
@@ -27,6 +27,7 @@ const Usuario: React.FC<{}> = ({}) => {
     const [modalSuccess, setSuccess] = useState<string | null>(null);
     const[open, setOpen] = useState(false);
     const[openOnSuccess, setOpenOnSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const[usuario, setUsuario] = useState<UsuarioModel>();
     const navigate = useNavigate();
 
@@ -50,19 +51,11 @@ const Usuario: React.FC<{}> = ({}) => {
       setModalError('As senhas não condizem.');
       setOpen(true);
     }
-  }, [errors.passwordConfirm]);
-
-  function isValidDate(dateString: string) {
-    const [day, month, year] = dateString.split('/').map(Number);
-    if (!day || !month || !year) return false;
-
-    const date = new Date(year, month - 1, day);
-    return (
-      date.getFullYear() === year &&
-      date.getMonth() === month - 1 &&
-      date.getDate() === day
-    );
-  }
+    if (errors.password?.message === 'A senha precisa ter pelo menos 6 caracteres.') {
+      setModalError(errors.password.message);
+      setOpen(true);
+    }
+  }, [errors.passwordConfirm, errors.password]);
 
   const onErrors = (errors: any) => {
     const firstErrorField = Object.keys(errors)[0];
@@ -115,7 +108,7 @@ const Usuario: React.FC<{}> = ({}) => {
         </div>
       </Modal>
 
-      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/home');}}>
+      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/login');}}>
         <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
           <CheckCircleIcon className="h-8 w-8 text-green-600 mb-2" />
           <div className="text-center">
@@ -206,19 +199,29 @@ const Usuario: React.FC<{}> = ({}) => {
                 Senha
               </label>
             </div>
-            <div className="mt-2">
+            <div className="mt-2 relative">
               <input
                 {...register('password', {
                   required: 'Uma senha é necessária.',
-                  minLength: 6,
+                  minLength: {
+                    value: 6,
+                    message: 'A senha precisa ter pelo menos 6 caracteres.',
+                  }
                 })}
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-5 right-2 flex items-center text-sm text-gray-400 hover:text-white focus:outline-none"
+              >
+                {showPassword ? <EyeIcon className="h-7 w-7 text-white mb-2"/>: <EyeSlashIcon className="h-7 w-7 text-white mb-2"/>}
+              </button>
             </div>
           </div>
 
@@ -238,7 +241,7 @@ const Usuario: React.FC<{}> = ({}) => {
                 })}
                 id="passwordConfirm"
                 name="passwordConfirm"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
               />

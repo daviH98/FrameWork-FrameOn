@@ -24,16 +24,19 @@ const listar = async () => {
 }
 
 const buscarPorId = async (id: string) => {
+    const token = localStorage.getItem('token');
+
     return await fetch(`http://localhost:8080/api/usuario/${id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
         }
     }) .then((response) => response.json());
 }
 
 const login = async (email: string, senha: string) => {
-    return await fetch(`http://localhost:8080/api/login`, {
+    const response = await fetch(`http://localhost:8080/api/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -42,23 +45,68 @@ const login = async (email: string, senha: string) => {
             email:email,
             senha:senha
         }),
-    })
-        .then((response) => response.json())
-        .then(data => {
-            if (data.token) {
-              localStorage.setItem('token', data.token);
-              const payload = JSON.parse(atob(data.token.split('.')[1]));
-              console.log(payload);
-            }
-        });
+    });
+
+    let data;
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
     }
 
-const uploadArquivo = async (arquivo: any) => {
-    return await fetch(`http://localhost:8080/api/upload`, {
-        method: "POST",
-        body: arquivo,
-    })
-        .then((response) => response.json());
+    if (!response.ok) {
+        throw new Error(data?.message || 'Erro ao fazer login.');
+    }
+
+    localStorage.setItem('token', data.token);
+    return data;
+}
+
+const apagar = async (id: string) => {
+    const token = localStorage.getItem('token');
+
+    try {
+    const response = await fetch(`http://localhost:8080/api/usuario/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response) {
+        console.error("Nenhuma resposta recebida do servidor.");
+        throw new Error("Erro de rede ou resposta inválida.");
+    }
+
+    if (!response.ok) {
+        console.error("Erro ao deletar usuário:", response.status);
+        throw new Error("Erro ao deletar usuário");
+      }
+    
+    if (response.status === 204) {
+        console.log("Usuário deletado com sucesso.");
+        return;
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+        const data = await response.json();
+        if (!response.ok) {
+            console.error("Erro na exclusão:", data.message || data);
+            throw new Error(data.message || "Erro desconhecido ao excluir.");
+          }
+    
+          console.log("Resposta do backend:", data);
+          return data;
+        } else {
+          console.warn("Resposta inesperada do servidor, sem JSON.");
+        }
+    
+      } catch (error) {
+        console.error("Erro ao apagar usuário:", error);
+        throw error;
+      }
 }
 
 const userService = {
@@ -66,7 +114,7 @@ const userService = {
     listar,
     buscarPorId,
     login,
-    uploadArquivo
+    apagar
 };
 
 export default userService

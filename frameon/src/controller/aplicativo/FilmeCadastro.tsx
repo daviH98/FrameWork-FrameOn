@@ -69,10 +69,11 @@ const FilmeCadastro: React.FC<{}> = ({}) => {
       id: id,
       nome: data.nome,
       ano: data.ano || null,
-      capa: data.capa || null,
+      capa: data.capa || filme?.capa,
       categoria_id: data.categoria_id,
     };
 
+    console.log("Salvando filme:", novoFilme);
     setFilme(novoFilme);
 
     filmeService.salvarF(novoFilme)
@@ -135,7 +136,7 @@ useEffect(() => { console.log(filme) },[filme]);
         </div>
       </Modal>
 
-      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/');}}>
+      <Modal open={openOnSuccess} onClose={() => {setOpenOnSuccess(false); navigate('/admin');}}>
         <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
           <CheckCircleIcon className="h-8 w-8 text-green-600 mb-2" />
           <div className="text-center">

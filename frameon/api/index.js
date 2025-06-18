@@ -83,7 +83,7 @@ app.post('/api/login', function (req,res) {
     let usuario = req.body;
     const sql = `SELECT u.id, u.email, u.senha, u.role FROM usuario u WHERE u.email = ? AND u.senha = ?`;
 
-    conn.query(sql, [usuario.email, usuario.senha, usuario.role], function (err, result) {
+    conn.query(sql, [usuario.email, usuario.senha], function (err, result) {
       if (err) {
         console.error(err);
         return res.status(500).json({ message: 'Erro no servidor' });
@@ -196,9 +196,16 @@ app.delete('/api/usuario/:id', authenticate, (req, res) => {
 
     let sql = `DELETE FROM USUARIO WHERE ID = ${id}`;
     conn.query(sql, function (err, result) {
-        if (err) throw err;
-        console.log(result)
-        res.status(200).json(result[0]);
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Erro ao excluir usuário' });
+      }
+
+      if (result.affectedRows > 0) {
+        res.status(204).end(); // deletado com sucesso
+      } else {
+        res.status(404).json({ message: 'Usuário não encontrado' });
+      }
     });
 });
 
@@ -209,23 +216,42 @@ app.delete('/api/usuario/:id', authenticate, (req, res) => {
 //endpoint para cadastrar um filme
 app.post('/api/filme', verificarAdmin, function (req,res) {
     var filme = req.body;
+    console.log('Filme recebido:', filme);
+    console.log('Tipo do id:', typeof filme.id);
     filme.categoria_id = filme.categoria_id || filme.categoriaId;
     var sql = '';
+    if (filme.id !== undefined && filme.id !== null && filme.id !== '') {
+      // Converte id para number para garantir
+      const idNum = Number(filme.id);
+      if (isNaN(idNum)) {
+        return res.status(400).json({ message: 'ID inválido' });
+      }
+      
     if(filme.id) {
+      console.log('Update acionado');
         sql = `UPDATE filme SET
         nome = ?,
         ano = ?,
         capa = ?,
         categoria_id = ?
         WHERE id = ?`;
-    } else {
-        sql = `INSERT INTO filme (nome,ano,capa,categoria_id) VALUES (?,?,?,?)`;
-    }
 
-    conn.query(sql, [filme.nome, filme.ano, filme.capa, filme.categoria_id], function (err, result) {
-        if (err) throw err;
-        res.status(200).json(result);
-    })
+        console.log('Filme ID:', filme.id);
+        console.log('SQL:', sql);
+        console.log('Parâmetros:', [filme.nome, filme.ano, filme.capa, filme.categoria_id, filme.id]);
+        conn.query(sql, [filme.nome, filme.ano, filme.capa, filme.categoria_id, filme.id], function (err, result) {
+          if (err) throw err;
+          res.status(200).json(result);
+        });
+    }} else {
+        console.log('Insert acionado');
+        sql = `INSERT INTO filme (nome,ano,capa,categoria_id) VALUES (?,?,?,?)`;
+
+        conn.query(sql, [filme.nome, filme.ano, filme.capa, filme.categoria_id], function (err, result) {
+          if (err) throw err;
+          res.status(200).json(result);
+        });
+    }
 });
 
 //endpoint para favoritar um filme

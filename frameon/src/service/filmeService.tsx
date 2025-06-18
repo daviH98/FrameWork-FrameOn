@@ -1,8 +1,10 @@
+import { error } from "console";
 import { Filme } from "../model/Filme.model";
 const token = localStorage.getItem("token");
 
 const salvarF = async (filme: Filme) => {
     const data = {
+        id: filme.id,
         nome: filme.nome,
         ano: filme.ano, 
         capa: filme.capa,
