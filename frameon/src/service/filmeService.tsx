@@ -99,12 +99,20 @@ const uploadArquivo = async (arquivo: any) => {
 };
 
 const favoritar = async (id: any) => {
-    return await fetch(`/api/filme/${id}/favorito`, {
+    const response = await fetch(`http://localhost:8080/api/filme/${id}/favorito`, {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
       },
     });
+
+    if (!response.ok) {
+        throw new Error("Erro ao favoritar");
+      }
+    
+      const data = await response.json();
+      return data;
 }
 
 const filmeService = {

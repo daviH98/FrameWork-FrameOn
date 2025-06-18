@@ -13,7 +13,8 @@ import Modal from './assets/modal.jsx';
 import Card from './assets/card';
 import filmeService from './service/filmeService';
 
-const Home: React.FC<{}> = ({}) =>  {
+const Favoritos: React.FC<{}> = ({}) =>  {
+  const [filmesFavoritos, setFilmesFavoritos] = useState<Filme[]>([]);
   const[filmes, setFilme] = useState<Filme[]>([]);
   const [favorito, setFavoritos] = useState<number[]>([]);
   const navigate = useNavigate();
@@ -54,9 +55,9 @@ const Home: React.FC<{}> = ({}) =>  {
   };
   
   const navigation = [
-    { name: 'Catálogo', href: '/home', current: true },
+    { name: 'Catálogo', href: '/home', current: false },
     { name: 'Sobre', href: '/sobre', current: false },
-    { name: 'Favoritos', href: '/favoritos', current: false },
+    { name: 'Favoritos', href: '/favoritos', current: true },
   ]
 
   if (user && user.role === 'admin') {
@@ -68,7 +69,6 @@ const Home: React.FC<{}> = ({}) =>  {
   }
 
   const [modalSuccess, setSuccess] = useState<string | null>(null);
-  const[open, setOpen] = useState(false);
   const[openOnSuccess, setOpenOnSuccess] = useState(false);
   
   const signOut = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -80,32 +80,18 @@ const Home: React.FC<{}> = ({}) =>  {
 
   useEffect(() => {
     buscarFilmes();
-
     const carregarFavoritos = async () => {
-      try {
         const response = await fetch("http://localhost:8080/api/filmes/favoritos", {
           method: "GET",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
-
-        console.log("Status da resposta:", response.status);
-        if (!response.ok) {
-          // Por exemplo, 401 Unauthorized, 500 Internal Server Error etc.
-          const text = await response.text();
-          console.error("Resposta inválida:", text);
-          throw new Error(`Erro na resposta: ${response.status}`);
-        }
-
+    
         const data = await response.json();
-        console.log("Resposta da API favoritos:", data);
-        const idsFavoritados = data.map((filme: any) => filme.id);
-        setFavoritos(idsFavoritados);
-      } catch (error) {
-        console.error("Erro ao carregar favoritos", error);
-      }
-    };
+        const idsFavoritos = data.map((f: any) => f.id);
+        setFavoritos(idsFavoritos);
+      };
   
     carregarFavoritos();
   }, []);
@@ -232,36 +218,31 @@ const Home: React.FC<{}> = ({}) =>  {
       {/* Lista de Filmes */}
       <div className="max-w-7xl mx-auto px-20">
         <div className="py-20 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filmes?.map((filme: Filme) => {
-          console.log("Filmes:", filmes);
-          console.log(filme.ano)
-          console.log(filme.categoria_id)
-
-          return (
-            <Card imgSrc={filme.capa} key={filme.id}>
-              <h3 className="text-l font-bold mb-2 drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">{filme.nome}</h3>
-              <p className='drop-shadow-[0_2px_2px_rgba(0,0,0,1)]'>
-                {filme.ano} • {filme.categoria}
-              </p>
-              <div className="space-x-24 mt-4">
-                <button>
-                  <PlayIcon className="h-8 w-8 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
-                </button>
-                <button onClick={() => favoritar(filme.id)}>
-                  {favorito.includes(filme.id) ? (
-                    <HeartSolid className="h-8 w-8 text-red-500 drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
-                  ) : (
-                    <HeartOutline className="h-8 w-8 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
-                  )}
-                </button>
-              </div>
-            </Card>
-          );
-        })}
+        {filmes.filter(filme => favorito.includes(filme.id))
+        .map(filme => (
+        <Card imgSrc={filme.capa} key={filme.id}>
+          <h3 className="text-l font-bold mb-2">{filme.nome}</h3>
+          <p className='drop-shadow-[0_2px_2px_rgba(0,0,0,1)]'>
+            {filme.ano} • {filme.categoria}
+            </p>
+            <div className="space-x-24 mt-4">
+            <button>
+                <PlayIcon className="h-8 w-8 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
+            </button>
+            <button onClick={() => favoritar(filme.id)}>
+                {favorito.includes(filme.id) ? (
+                <HeartSolid className="h-8 w-8 text-red-500 drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
+                ) : (
+                <HeartOutline className="h-8 w-8 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" />
+                )}
+            </button>
+            </div>
+        </Card>
+      ))}
         </div>
       </div>
       </div>
   );
 }
 
-export default Home;
+export default Favoritos;

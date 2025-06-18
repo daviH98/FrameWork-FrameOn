@@ -104,7 +104,7 @@ const Usuario: React.FC<{}> = ({}) => {
     useEffect(() => { console.log(usuario) },[usuario]);
 
     return (
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-10 lg:px-8 bg-gray-950">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-40 lg:px-8 bg-gray-950">
         <Modal open={open} onClose={() => setOpen(false)}>
         <div className="flex flex-col items-center justify-center bg-gray-900 p-6 rounded-lg w-64">
           <ExclamationTriangleIcon className="h-8 w-8 text-red-600 mb-2" />
@@ -165,17 +165,13 @@ const Usuario: React.FC<{}> = ({}) => {
               name="dOB"
               control={control}
               rules={{
-                required: `O campo 'Data de lançamento' precisa ser preenchido.`,
-                validate: (value) =>
-                  isValidDate(value) || 'Data inválida, use o formato DD/MM/AAAA',
+                required: `O campo 'Data de nascimento' precisa ser preenchido.`,
               }}
               render={({ field }) => (
-                <IMaskInput
+                <input
                   {...field}
-                  mask="00/00/0000"
-                  placeholder="DD/MM/AAAA"
+                  type="date"
                   className="block w-full rounded-md bg-gray-900 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                  onAccept={(value: string) => field.onChange(value)}
                 />
               )}
             />

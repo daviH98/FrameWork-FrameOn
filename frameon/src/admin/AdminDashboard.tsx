@@ -253,7 +253,7 @@ const AdminDashboard: React.FC<{}> = ({}) =>  {
               >
                 <MenuItem>
                   <a
-                    href="/usuario"
+                    href="/perfil"
                     className="block px-4 py-2 text-sm text-white hover:bg-white hover:text-black data-focus:bg-gray-100 data-focus:outline-hidden"
                   >
                     Seu perfil

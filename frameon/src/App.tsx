@@ -12,6 +12,8 @@ import Sobre from './Sobre';
 import AdminDashboard from './admin/AdminDashboard';
 import Landing from './Landing';
 import { AdminRouter } from './AdminRouter';
+import Favoritos from './Favoritos';
+import Profile from './controller/aplicativo/Profile';
 
 function App() {
   return (
@@ -24,7 +26,9 @@ function App() {
 
           <Route element={<ProtectedRoute/>}>
             <Route path="/home" element={<Home/>}/>
+            <Route path="/favoritos" element={<Favoritos/>}/>
             <Route path="/sobre" element={<Sobre/>}/>
+            <Route path="/perfil" element={<Profile/>}/>
             <Route path="/usuario/:id" element={<Cadastro/>}/>
           </Route>
 

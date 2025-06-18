@@ -39,7 +39,7 @@ const Sobre: React.FC<{}> = ({}) =>  {
           <button
               type="submit"
               className="justify-center rounded-md bg-yellow-700 px-3 py-1 text-sm/6 font-semibold text-white shadow-xs hover:bg-yellow-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/home')}
             >
               Voltar
             </button>

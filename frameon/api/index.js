@@ -52,10 +52,6 @@ const generateToken = (id, email, role) => {
     });
 }
 
-const verifyToken = (token) => {
-    return jwt.verify(token, 'meusegredoabc');
-};
-
 function verificarAdmin(req, res, next) {
   const authHeader = req.headers.authorization;
 
@@ -111,20 +107,27 @@ app.post('/api/login', function (req,res) {
 })
 
 function authenticate(req, res, next) {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({ error: 'Token não fornecido' });
-    }
-    
-    try {
-      const decoded = verifyToken(token);
-      req.userId = decoded.id;
-      next();
-    } catch (err) {
-      res.status(401).json({ error: 'Token inválido' });
-    }
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ error: "Token não fornecido" });
   }
+
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return res.status(401).json({ error: "Formato do token inválido" });
+  }
+
+  const token = parts[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.error("Erro ao validar token:", error);
+    return res.status(401).json({ error: "Token inválido" });
+  }
+}
 
 //endpoint para cadastrar um usuário
 app.post('/api/usuario', function (req,res) {
@@ -150,8 +153,14 @@ app.post('/api/usuario', function (req,res) {
         return res.status(500).json({ error: 'Erro ao salvar usuário' });
       }
 
-      const user = result[0];
-      const token = generateToken(user.insertId, user.email, user.role);
+      let userId = usuario.id;
+
+      if (!usuario.id) {
+        // No insert, pegar o id gerado no banco
+        userId = result.insertId;
+      }
+
+      const token = generateToken(userId, usuario.email, usuario.role);
       res.status(200).json({
             message: 'Usuário salvo com sucesso',
             result,
@@ -159,8 +168,6 @@ app.post('/api/usuario', function (req,res) {
         });
     });
 });
-
-
 
 //endpoint para resgatar um usuário
 app.get('/api/usuario', authenticate, function (req,res) {
@@ -175,7 +182,7 @@ app.get('/api/usuario', authenticate, function (req,res) {
 app.get('/api/usuario/:id', authenticate, (req, res) => {
     const { id } = req.params;
 
-    let sql = `SELECT u.id, u.nome, u.email, u.senha, u.img, u.dOB FROM usuario u WHERE u.id = ${id}`;
+    let sql = `SELECT u.id, u.nome, u.email, u.senha, u.dOB FROM usuario u WHERE u.id = ${id}`;
     conn.query(sql, function (err, result) {
         if (err) throw err;
         console.log(result)
@@ -222,7 +229,7 @@ app.post('/api/filme', verificarAdmin, function (req,res) {
 });
 
 //endpoint para favoritar um filme
-app.post('/api/filme/:id/favorito', authenticate, (req, res) => {
+app.post('/api/filme/:id/favorito', authenticate,  (req, res) => {
   const usuarioId = req.user.id;
   const filmeId = req.params.id;
 
@@ -262,8 +269,8 @@ app.get('/api/filmes/favoritos', authenticate, (req, res) => {
   const usuarioId = req.user.id;
   const sql = `
     SELECT f.*
-    FROM filme f
-    JOIN favorito fav ON f.id = fav.filme_id
+    FROM favorito fav
+    JOIN filme f ON fav.filme_id = f.id
     WHERE fav.usuario_id = ?
   `;
 

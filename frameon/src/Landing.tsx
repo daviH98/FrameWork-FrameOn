@@ -8,7 +8,7 @@ const Landing: React.FC<{}> = ({}) =>  {
 
     return (
         <div>
-              <div className="flex justify-center items-center h-full px-4 py-36">
+              <div className="flex justify-center items-center h-full px-4 py-60">
                 <div className="max-w-2xl text-center w-screen">
                 <h1 className="text-2xl font-bold text-yellow-500 mb-4 drop-shadow-lg">
                     Bem-vindo ao</h1>
